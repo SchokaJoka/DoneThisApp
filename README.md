@@ -1,75 +1,41 @@
-# Nuxt Minimal Starter
+# Project DoneThisApp: KI-gestützte Aufgabenverwaltung
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## Überblick
 
-## Setup
+**TaskFlow** ist eine Webapp zur intelligenten Aufgabenverwaltung, die KI-Unterstützung mit klarer visueller Struktur verbindet. Sie begleitet Nutzer von der Ideenfindung bis zum erfolgreichen Abschluss – mit Fokus auf Motivation und Klarheit.
 
-Make sure to install dependencies:
+Diese Anwendung entstand im Rahmen des Moduls **STUW1 (Studio Web 1)** an der **Hochschule Luzern**, Studiengang **Digital Ideation**.
 
-```bash
-# npm
-npm install
+---
 
-# pnpm
-pnpm install
+## Hauptfunktionen
 
-# yarn
-yarn install
+- **KI-gestützte Aufgabenerstellung:** Manuell oder über Dialog mit KI-Assistenz, inklusive Erfassung von Name, Deadline, Zeitaufwand, Motivationslevel und Notizen.
+- **Flexible Aufgabentypen:** Definierte Tasks, Wunsch-Tasks und noch unklare Aufgaben mit visuellen Hinweisen.
+- **Task-Übersicht:** Visuelle, kompakte und detaillierte Darstellung aller Aufgaben mit Fokus-Modus für konzentriertes Arbeiten.
+- **Fokus-Modus:** Timer, Notizen, Zwischenstand-Speicherung und motivierende Abschlussanimation.
+- **Erinnerungssystem:** Individuelle oder wiederkehrende Benachrichtigungen, eigene Reminder-Vorlagen.
 
-# bun
-bun install
-```
+---
 
-## Development Server
+## Highlights
 
-Start the development server on `http://localhost:3000`:
+- **KI-Unterstützung:** Smarte Vorschläge und Erinnerungen
+- **Motivierendes Design:** Visuelle Belohnungen, klare Strukturen
+- **Flexibel & fokussiert:** Aufgaben können geplant, gefeiert oder verworfen werden
 
-```bash
-# npm
-npm run dev
+---
 
-# pnpm
-pnpm dev
+## Technologien
 
-# yarn
-yarn dev
+TaskFlow wird umgesetzt mit:  
+- **Nuxt (Vue.js):** Für die interaktive Web-Oberfläche  
+- **Tailwind CSS:** Für modernes, responsives UI-Design  
+- **Supabase:** Für Authentifizierung und Datenbankmanagement  
+- **Replicate API:** Für KI-gestützte Dialoge und Aufgabenverarbeitung  
 
-# bun
-bun run dev
-```
+Die Anwendung speichert alle Daten serverseitig über Supabase.
 
-## Production
+---
 
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+**TaskFlow** kombiniert künstliche Intelligenz mit positivem UX-Design – für eine Aufgabenverwaltung, die motiviert, fokussiert und Freude macht.
