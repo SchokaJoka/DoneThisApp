@@ -26,9 +26,6 @@ const signInWithOtp = async () => {
       type="email"
     />
   </div>
-
-
-
   <div>
     <button class="rounded-sm bg-red-500 p-2 pt-3 ">
       <span>
@@ -36,12 +33,5 @@ const signInWithOtp = async () => {
       </span>
     </button>
   </div>
-
-
 </template>
-
-<style>
-
-
-</style>
 

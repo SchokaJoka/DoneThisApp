@@ -2,6 +2,8 @@
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+console.log('Current user:', user.value)
+
 // Recording state
 const isRecording = ref(false)
 const recorder = shallowRef<MediaRecorder | null>(null)
@@ -94,6 +96,8 @@ const uploadToSupabase = async (): Promise<string> => {
   if (userErr) throw userErr
   if (!user) throw new Error('You must be logged in to upload.')
 
+    console.log('USER ID: ', user.id)
+
   const fileExt = audioBlob.value.type.includes('webm') ? 'webm' : 'ogg'
   const filePath = `${user.id}/recordings/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
   console.log('Uploading to:', filePath)
@@ -145,4 +149,6 @@ const uploadToSupabase = async (): Promise<string> => {
         <p v-if="errorMsg" class="text-red-600 whitespace-pre-wrap">{{ errorMsg }}</p>
         <pre v-if="transcript" class="whitespace-pre-wrap border p-3 rounded">{{ transcript }}</pre>
     </div>
+
+    <TaskForm />
 </template>

@@ -11,15 +11,15 @@ definePageMeta({
     middleware: ['auth']
 })
 
-const user = useSupabaseUser()
-onMounted(() => {
-    watchEffect(() => {
-        if(!user.value) {
-            navigateTo('/login')
-        }
-    })
+// const user = useSupabaseUser()
+// onMounted(() => {
+//     watchEffect(() => {
+//         if(!user.value) {
+//             navigateTo('/login')
+//         }
+//     })
 
-})
+// })
 
 
 const logout = async () => {
