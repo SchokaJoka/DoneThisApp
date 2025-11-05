@@ -1,6 +1,6 @@
 <template>
-    <div class="min-h-screen p-4 pb-24">
-      <div class="max-w-6xl mx-auto">
+    <div class="min-h-screen p-4">
+      <div class="max-w-md mx-auto">
         <!-- Header -->
         <div class="mb-6">
           <h1 class="text-3xl font-bold text-gray-900">My Tasks</h1>
@@ -38,7 +38,7 @@
         </div>
 
         <!-- Tasks Grid -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div v-else class="grid grid-cols-1 gap-3">
           <TaskCard
             v-for="task in tasks"
             :key="task.id"

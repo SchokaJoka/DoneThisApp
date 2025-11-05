@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4 pb-24">
-    <div class="max-w-2xl w-full text-center space-y-8">
-      <div class="space-y-4">
-        <h1 class="text-5xl font-bold text-gray-900">Welcome to DoneThis</h1>
-        <p class="text-xl text-gray-600">Your personal task management companion</p>
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full text-center space-y-6">
+      <div class="space-y-2">
+        <h1 class="text-3xl font-bold text-gray-900">Welcome to DoneThis</h1>
+        <p class="text-base text-gray-600">Your personal task management companion</p>
       </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
+
+      <div class="grid grid-cols-1 gap-3 mt-8">
         <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
           <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

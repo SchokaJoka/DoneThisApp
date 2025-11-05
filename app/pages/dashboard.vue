@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen p-4 pb-24">
-    <div class="max-w-4xl mx-auto space-y-6">
+  <div class="min-h-screen p-4">
+    <div class="max-w-md mx-auto space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
         <div>
@@ -16,7 +16,7 @@
       </div>
 
       <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 gap-3">
         <div class="bg-white rounded-xl p-6 shadow-md">
           <div class="flex items-center justify-between">
             <div>
@@ -63,7 +63,7 @@
       <!-- Quick Actions -->
       <div class="bg-white rounded-xl p-6 shadow-md">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-3">
           <NuxtLink
             to="/taskcreator"
             class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
