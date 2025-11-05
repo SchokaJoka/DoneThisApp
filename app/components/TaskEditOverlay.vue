@@ -10,17 +10,32 @@
         <input v-model="name" class="mt-1 block w-full rounded-md border-gray-200 p-2" />
       </label>
 
-      <label class="block mb-4">
-        <span class="text-sm font-medium text-slate-700">Priority</span>
-        <select v-model.number="priority" class="mt-1 block w-24 rounded-md border-gray-200 p-2">
-          <option v-for="p in [1,2,3,4,5]" :key="p" :value="p">{{ p }}</option>
-        </select>
+      <label class="block mb-3">
+        <span class="text-sm font-medium text-slate-700">Description</span>
+        <textarea v-model="description" rows="3" class="mt-1 block w-full rounded-md border-gray-200 p-2"></textarea>
       </label>
+
+      <label class="block mb-3">
+        <span class="text-sm font-medium text-slate-700">Effort</span>
+        <input v-model="effort" class="mt-1 block w-full rounded-md border-gray-200 p-2" />
+      </label>
+
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <label class="block">
+          <span class="text-sm font-medium text-slate-700">Due date</span>
+          <input type="date" v-model="due_date" class="mt-1 block w-full rounded-md border-gray-200 p-2" />
+        </label>
+
+        <label class="block">
+          <span class="text-sm font-medium text-slate-700">Due time</span>
+          <input type="time" v-model="due_time" class="mt-1 block w-full rounded-md border-gray-200 p-2" />
+        </label>
+      </div>
 
       <div class="flex justify-end gap-3">
         <button @click="close" class="px-3 py-1 rounded border">Cancel</button>
-        <button :disabled="loading" @click="save()" class="px-4 py-1 bg-sky-600 text-white rounded disabled:opacity-50">
-          <span v-if="loading">Saving…</span>
+        <button :disabled="loading" @click="save" class="px-4 py-1 bg-sky-600 text-white rounded disabled:opacity-50">
+          <span v-if="loading">loading...</span>
           <span v-else>Save</span>
         </button>
       </div>
@@ -31,70 +46,54 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
 const props = defineProps({
-  taskId: { type: [String, Number], required: true }
+  taskId: { required: true }
 })
 const emit = defineEmits(['close','saved'])
 
 const name = ref('')
-const priority = ref(1)
-const loading = ref(false)
-const error = ref(null)
+const description = ref('')
+const effort = ref('')
+const due_date = ref('')
+const due_time = ref('')
 
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
+const { loading, error, task, getTask, updateTask } = useTasks()
 
-async function loadTask() {
-  error.value = null
-  loading.value = true
-  const { data, error: fetchError } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('id', props.taskId)
-    .single()
-  loading.value = false
+onMounted(async () => {
+  try {
+    await getTask(props.taskId)
+    if (task.value) {
+      name.value = task.value.name ?? ''
+      description.value = task.value.description ?? ''
+      effort.value = task.value.effort ?? ''
+      // normalize date/time to empty string if null so inputs work correctly
+      due_date.value = task.value.due_date ?? ''
+      due_time.value = task.value.due_time ?? ''
+    }
+  } catch (e) {
+    console.error('Failed to load task for edit', e)
+  }
+})
 
-  if (fetchError) {
-    error.value = fetchError.message
-  } else if (data) {
-    name.value = data.name ?? ''
-    priority.value = data.priority ?? 1
+async function save() {
+  try {
+    const payload = {
+      name: name.value ?? '',
+      description: description.value ?? '',
+      effort: effort.value ?? '',
+      due_date: due_date.value === '' ? null : due_date.value,
+      due_time: due_time.value === '' ? null : due_time.value
+    }
+
+    const updated = await updateTask(props.taskId, payload)
+    emit('saved', updated)
+    close()
+  } catch (e) {
+    console.error('Failed to save task', e)
   }
 }
 
-onMounted(loadTask)
-watch(() => props.taskId, () => loadTask())
-
 function close() {
   emit('close')
-}
-
-async function save() {
-    if (!user?.value) {
-        error.value = 'Not authenticated'
-        console.error("User not authenticated")
-        return
-    }
-
-    loading.value = true
-    error.value = null
-
-    const updates = { name: name.value, priority: Number(priority.value) }
-    updates.updated_at = new Date().toISOString()
-    
-    const { data, e } = await supabase
-        .from('tasks')
-        .update(updates)
-        .eq('id', props.taskId)
-
-    loading.value = false
-
-    if (e) {
-        error.value = e.message
-    } else {
-        console.log("Task updated:", data)
-        emit('close')
-    }
 }
 </script>

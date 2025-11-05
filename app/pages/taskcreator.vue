@@ -2,8 +2,6 @@
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
-console.log('Current user:', user.value)
-
 // Recording state
 const isRecording = ref(false)
 const recorder = shallowRef<MediaRecorder | null>(null)
@@ -15,6 +13,7 @@ const audioObjectUrl = ref<string | null>(null)
 // Transcription state
 const language = ref('en')
 const transcript = ref('')
+const aiResponse = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
 
@@ -22,17 +21,35 @@ const uploadAndTranscribe = async () => {
     loading.value = true
     errorMsg.value = ''
     transcript.value = ''
+    const url = await uploadToSupabase()
     try {
-        const url = await uploadToSupabase()
-        const res = await $fetch('/api/transcribe', {
+        const res = await $fetch('/api/ai/transcribe', {
             method: 'POST',
-            body: { audioUrl: url, language: language.value },
+            body: { audioUrl: url },
         })
         transcript.value = (res as any).text ?? ''
+        aiResponse.value = (res as any).ai ?? ''
     } catch (e: any) {
         errorMsg.value = e?.data?.statusMessage || e?.data?.message || e?.message || 'Failed to transcribe'
     } finally {
         loading.value = false
+    // Delete the uploaded audio file from Supabase after processing (cleanup)
+    try {
+        if (url) {
+            // Parse the path from the Supabase public URL
+            // Use new URL() to safely handle paths
+            const parsed = new URL(url)
+            // The pathname starts with a slash - remove it
+            const bucketSegments = parsed.pathname.slice(1).split('/')
+            const filePath = bucketSegments.slice(1).join('/')
+            if (filePath) {
+                await supabase.storage.from('audio').remove([filePath])
+            }
+        }
+    } catch (deleteErr) {
+        // Optional: Log or silently ignore deletion errors
+        console.error('Supabase cleanup error:', deleteErr)
+    }
     }
 }
 
@@ -58,12 +75,18 @@ const startRecording = async () => {
         mr.ondataavailable = (e: BlobEvent) => {
             if (e.data && e.data.size > 0) chunks.push(e.data)
         }
-        mr.onstop = () => {
-            const typeFinal = mr.mimeType || 'audio/webm'
-            audioBlob.value = new Blob(chunks, { type: typeFinal })
-            if (audioObjectUrl.value) URL.revokeObjectURL(audioObjectUrl.value)
-            audioObjectUrl.value = URL.createObjectURL(audioBlob.value)
-        }
+                mr.onstop = async () => {
+                        const typeFinal = mr.mimeType || 'audio/webm'
+                        audioBlob.value = new Blob(chunks, { type: typeFinal })
+                        if (audioObjectUrl.value) URL.revokeObjectURL(audioObjectUrl.value)
+                        audioObjectUrl.value = URL.createObjectURL(audioBlob.value)
+                        // automatically upload and transcribe when recording stops
+                        try {
+                            await uploadAndTranscribe()
+                        } catch (e) {
+                            // uploadAndTranscribe already sets errorMsg; swallow here
+                        }
+                }
         mr.start()
         recorder.value = mr
         isRecording.value = true
@@ -118,37 +141,59 @@ const uploadToSupabase = async (): Promise<string> => {
   console.log('File uploaded and signed URL created:', signed.signedUrl)
   return signed.signedUrl
 }
+
+const clearAll = () => {
+    try {
+        if (recorder.value && recorder.value.state !== 'inactive') recorder.value.stop()
+    } catch {}
+    audioBlob.value = null
+    if (audioObjectUrl.value) {
+        URL.revokeObjectURL(audioObjectUrl.value)
+        audioObjectUrl.value = null
+    }
+    transcript.value = ''
+    aiResponse.value = ''
+    errorMsg.value = ''
+}
 </script>
 
 <template>
-    <div class="space-y-6 p-4 max-w-2xl mx-auto">
-        <h1 class="text-2xl font-semibold">Record and transcribe</h1>
-
+    <div class="p-4 max-w-2xl  mx-auto fixed bottom-20 left-1/2 -translate-x-1/2 z-50">
         <div class="flex items-center gap-3">
-            <button v-if="!isRecording" @click="startRecording" class="px-3 py-2 bg-green-600 text-white rounded">
-                Start Recording
-            </button>
-            <button v-else @click="stopRecording" class="px-3 py-2 bg-red-600 text-white rounded">
-                Stop Recording
-            </button>
-            <input v-model="language" class="border p-2 w-28" placeholder="en" />
-        </div>
-
-        <div v-if="audioObjectUrl" class="space-y-2">
-            <audio :src="audioObjectUrl" controls class="w-full"></audio>
-            <div class="flex gap-2">
-                <button :disabled="loading || !audioObjectUrl" @click="uploadAndTranscribe" class="px-3 py-2 bg-blue-600 text-white rounded">
-                    {{ loading ? 'Uploading & Transcribing…' : 'Upload & Transcribe' }}
+            <div>
+                <button v-if="!isRecording" @click="startRecording" class="px-3 py-2 bg-green-600 text-white rounded">
+                    Start Recording
                 </button>
-                <button :disabled="loading" @click="() => { transcript=''; errorMsg=''; }" class="px-3 py-2 border rounded">
-                    Clear
+                <button v-else @click="stopRecording" class="px-3 py-2 bg-red-600 text-white rounded">
+                    Stop Recording
                 </button>
+            </div>
+            <div v-if="audioObjectUrl" class="space-y-2">
+                <div class="flex gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="text-sm text-slate-500">The recording will be uploaded and transcribed automatically when you stop.</div>
+                        <button :disabled="loading" @click="clearAll" class="px-3 py-2 border rounded">
+                            Clear
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <p v-if="errorMsg" class="text-red-600 whitespace-pre-wrap">{{ errorMsg }}</p>
-        <pre v-if="transcript" class="whitespace-pre-wrap border p-3 rounded">{{ transcript }}</pre>
+            <div class="mt-3">
+                <label class="block text-sm font-medium mb-1">transciptet text</label>
+                <pre v-if="transcript" class="whitespace-pre-wrap border p-3 rounded bg-slate-50">{{ transcript }}</pre>
+            </div>
+            <div class="mt-3">
+                <label class="block text-sm font-medium mb-1">AI Response</label>
+                <pre v-if="aiResponse" class="whitespace-pre-wrap border p-3 rounded bg-slate-50">{{ aiResponse }}</pre>
+            </div>
     </div>
 
-    <TaskForm />
+
+
+    <div class="w-screen h-screen flex items-center justify-center">
+        <TaskForm />
+    </div>
 </template>

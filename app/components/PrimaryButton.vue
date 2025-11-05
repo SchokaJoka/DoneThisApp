@@ -1,6 +1,6 @@
 <template>
     <button
-        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200"
+        :class="buttonClass"
         @click="handleButton"
     >
         {{ buttonText }}
@@ -8,7 +8,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
 
 const props = defineProps({
     buttonText: {
@@ -18,12 +17,24 @@ const props = defineProps({
     src: {
         type: String,
         required: false
+    },
+    type: {
+        type: String,
+        default: 'primary',
+        validator: value => ['primary', 'secondary'].includes(value)
     }
+})
+
+const buttonClass = computed(() => {
+    if (props.type === 'secondary') {
+        return 'bg-orange-100 hover:bg-orange-600 text-black font-bold py-2 px-4 rounded transition duration-200'
+    }
+    return 'bg-orange-600 hover:bg-orange-700 text-black font-bold py-2 px-4 rounded transition duration-200'
 })
 
 const handleButton = () => {
     if (props.src)
-    window.location.href = props.src
+        window.location.href = props.src
     else {
         console.log('Button clicked, but no src provided.')
     }

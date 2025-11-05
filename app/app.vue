@@ -1,11 +1,14 @@
 <template>
   <NuxtPage />
   <Navigation />
-  <TestComponent v-if="user" />
 </template>
 
 <script setup>
-  const user = useSupabaseUser()
-
 
 </script>
+
+<style>
+body {
+  @apply bg-green-500;
+}
+</style>
