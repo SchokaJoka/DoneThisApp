@@ -1,8 +1,44 @@
 <template>
-    <h1>Hello Homepage</h1>
-
-
-
+  <div class="min-h-screen flex items-center justify-center p-4 pb-24">
+    <div class="max-w-2xl w-full text-center space-y-8">
+      <div class="space-y-4">
+        <h1 class="text-5xl font-bold text-gray-900">Welcome to DoneThis</h1>
+        <p class="text-xl text-gray-600">Your personal task management companion</p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
+        <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Create Tasks</h3>
+          <p class="text-sm text-gray-600">Add new tasks with voice or text</p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Manage Tasks</h3>
+          <p class="text-sm text-gray-600">View and organize all your tasks</p>
+        </div>
+        
+        <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 mb-2">Track Progress</h3>
+          <p class="text-sm text-gray-600">Monitor your productivity</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>

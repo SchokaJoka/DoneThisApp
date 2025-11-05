@@ -158,42 +158,82 @@ const clearAll = () => {
 </script>
 
 <template>
-    <div class="p-4 max-w-2xl  mx-auto fixed bottom-20 left-1/2 -translate-x-1/2 z-50">
-        <div class="flex items-center gap-3">
-            <div>
-                <button v-if="!isRecording" @click="startRecording" class="px-3 py-2 bg-green-600 text-white rounded">
-                    Start Recording
-                </button>
-                <button v-else @click="stopRecording" class="px-3 py-2 bg-red-600 text-white rounded">
-                    Stop Recording
-                </button>
-            </div>
-            <div v-if="audioObjectUrl" class="space-y-2">
-                <div class="flex gap-2">
-                    <div class="flex items-center gap-2">
-                        <div class="text-sm text-slate-500">The recording will be uploaded and transcribed automatically when you stop.</div>
-                        <button :disabled="loading" @click="clearAll" class="px-3 py-2 border rounded">
-                            Clear
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <div class="min-h-screen p-4 pb-24">
+      <div class="max-w-4xl mx-auto space-y-6">
+        <!-- Header -->
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold text-gray-900">Create New Task</h1>
+          <p class="text-gray-600 mt-1">Add a task using voice or fill out the form below</p>
         </div>
 
-        <p v-if="errorMsg" class="text-red-600 whitespace-pre-wrap">{{ errorMsg }}</p>
-            <div class="mt-3">
-                <label class="block text-sm font-medium mb-1">transciptet text</label>
-                <pre v-if="transcript" class="whitespace-pre-wrap border p-3 rounded bg-slate-50">{{ transcript }}</pre>
+        <!-- Voice Recording Section -->
+        <div class="bg-white rounded-xl shadow-md p-6 space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900">Voice Recording</h2>
+          
+          <div class="flex items-center gap-4">
+            <button
+              v-if="!isRecording"
+              @click="startRecording"
+              class="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+              </svg>
+              Start Recording
+            </button>
+            <button
+              v-else
+              @click="stopRecording"
+              class="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors animate-pulse"
+            >
+              <div class="w-3 h-3 bg-white rounded-full"></div>
+              Stop Recording
+            </button>
+
+            <button
+              v-if="audioObjectUrl || transcript || aiResponse"
+              :disabled="loading"
+              @click="clearAll"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Clear
+            </button>
+          </div>
+
+          <p v-if="isRecording" class="text-sm text-gray-600 flex items-center gap-2">
+            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            Recording in progress...
+          </p>
+
+          <p v-if="audioObjectUrl && !isRecording" class="text-sm text-gray-600">
+            Recording complete. Uploading and transcribing...
+          </p>
+
+          <div v-if="errorMsg" class="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-sm text-red-600 whitespace-pre-wrap">{{ errorMsg }}</p>
+          </div>
+
+          <div v-if="transcript" class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Transcribed Text</label>
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ transcript }}</p>
             </div>
-            <div class="mt-3">
-                <label class="block text-sm font-medium mb-1">AI Response</label>
-                <pre v-if="aiResponse" class="whitespace-pre-wrap border p-3 rounded bg-slate-50">{{ aiResponse }}</pre>
+          </div>
+
+          <div v-if="aiResponse" class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">AI Response</label>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ aiResponse }}</p>
             </div>
-    </div>
+          </div>
+        </div>
 
-
-
-    <div class="w-screen h-screen flex items-center justify-center">
-        <TaskForm />
+        <!-- Task Form Section -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Task Details</h2>
+          <TaskForm />
+        </div>
+      </div>
     </div>
 </template>

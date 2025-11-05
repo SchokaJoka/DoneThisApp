@@ -27,62 +27,85 @@ async function add() {
 </script>
 
 <template>
-  <div class="max-w-xl">
-    <form @submit.prevent="add" class="">
-      <h2 class="text-lg font-semibold mb-4">Add a task</h2>
-
-      <label class="block mb-3">
-        <span class="text-sm font-medium text-slate-700">Name</span>
-        <input
-          v-model="name"
-          required
-          class="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-2 focus:ring-sky-300 focus:border-sky-400 p-2"
-          placeholder="e.g. Buy groceries"
-        />
+  <form @submit.prevent="add" class="space-y-5">
+    <div>
+      <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+        Task Name <span class="text-red-500">*</span>
       </label>
+      <input
+        id="name"
+        v-model="name"
+        required
+        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none"
+        placeholder="e.g. Buy groceries"
+      />
+    </div>
 
-      <label class="block mb-3">
-        <span class="text-sm font-medium text-slate-700">Description</span>
-        <textarea
-          v-model="description"
-          class="mt-1 block w-full rounded-md border-gray-200 p-2"
-          rows="3"
-          placeholder="Optional description"
-        />
+    <div>
+      <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+        Description
       </label>
+      <textarea
+        id="description"
+        v-model="description"
+        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none resize-none"
+        rows="4"
+        placeholder="Optional description or additional details"
+      />
+    </div>
 
-      <label class="block mb-3">
-        <span class="text-sm font-medium text-slate-700">Effort</span>
-        <input
-          v-model="effort"
-          class="mt-1 block w-full rounded-md border-gray-200 p-2"
-          placeholder="e.g. 2h, small, medium"
-        />
+    <div>
+      <label for="effort" class="block text-sm font-medium text-gray-700 mb-2">
+        Effort
       </label>
+      <input
+        id="effort"
+        v-model="effort"
+        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none"
+        placeholder="e.g. 2h, small, medium"
+      />
+    </div>
 
-      <div class="flex gap-4 mb-4">
-        <label class="block">
-          <span class="text-sm font-medium text-slate-700">Due date</span>
-          <input v-model="dueDate" type="date" class="mt-1 block rounded-md border-gray-200 p-2" />
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="dueDate" class="block text-sm font-medium text-gray-700 mb-2">
+          Due Date
         </label>
-
-        <label class="block">
-          <span class="text-sm font-medium text-slate-700">Due time</span>
-          <input v-model="dueTime" type="time" class="mt-1 block rounded-md border-gray-200 p-2" />
-        </label>
+        <input
+          id="dueDate"
+          v-model="dueDate"
+          type="date"
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none"
+        />
       </div>
 
-      <button
-        type="submit"
-        :disabled="loading"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-md hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <svg v-if="loading" class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-        </svg>
-        <span>{{ loading ? 'Adding...' : 'Add Task' }}</span>
-      </button>
-    </form>
-  </div>
+      <div>
+        <label for="dueTime" class="block text-sm font-medium text-gray-700 mb-2">
+          Due Time
+        </label>
+        <input
+          id="dueTime"
+          v-model="dueTime"
+          type="time"
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none"
+        />
+      </div>
+    </div>
+
+    <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-lg">
+      <p class="text-sm text-red-600">{{ error }}</p>
+    </div>
+
+    <button
+      type="submit"
+      :disabled="loading"
+      class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <svg v-if="loading" class="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+      <span>{{ loading ? 'Adding Task...' : 'Add Task' }}</span>
+    </button>
+  </form>
 </template>

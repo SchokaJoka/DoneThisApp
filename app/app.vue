@@ -1,6 +1,8 @@
 <template>
-  <NuxtPage />
-  <Navigation />
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <NuxtPage />
+    <Navigation />
+  </div>
 </template>
 
 <script setup>
@@ -9,6 +11,6 @@
 
 <style>
 body {
-  @apply bg-green-500;
+  @apply antialiased;
 }
 </style>

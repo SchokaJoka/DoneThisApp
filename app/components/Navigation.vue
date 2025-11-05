@@ -1,11 +1,11 @@
 <template>
     <!-- iPhone-style bottom tab bar -->
     <nav
-        class="nav-bar fixed bottom-5 left-1/2 transform -translate-x-1/2 w-[92%] max-w-md rounded-full px-3 py-2 shadow-xl border flex justify-between items-center"
+        class="nav-bar fixed bottom-5 left-1/2 transform -translate-x-1/2 w-[92%] max-w-md rounded-full px-3 py-2 shadow-xl border border-gray-200/60 flex justify-between items-center backdrop-blur-md"
         aria-label="Primary"
     >
         <!-- Create -->
-        <router-link
+        <NuxtLink
             to="/taskcreator"
             class="nav-btn flex-1 relative flex flex-col items-center justify-center gap-0.5 py-1 px-2 transition-colors duration-200 ease-out"
             :class="{ active: currentRoute === '/taskcreator' }"
@@ -22,10 +22,10 @@
                 </svg>
             </div>
             <span class="text-[11px] leading-none transition-opacity duration-200" :class="isNavigating ? 'opacity-70' : 'opacity-100'">Create</span>
-        </router-link>
+        </NuxtLink>
 
         <!-- MyTasks -->
-        <router-link
+        <NuxtLink
             to="/mytasks"
             class="nav-btn flex-1 relative flex flex-col items-center justify-center gap-0.5 py-1 px-2 transition-colors duration-200 ease-out"
             :class="{ active: currentRoute === '/mytasks' }"
@@ -42,10 +42,10 @@
                 </svg>
             </div>
             <span class="text-[11px] leading-none transition-opacity duration-200" :class="isNavigating ? 'opacity-70' : 'opacity-100'">My Tasks</span>
-        </router-link>
+        </NuxtLink>
 
         <!-- Dashboard -->
-        <router-link
+        <NuxtLink
             to="/dashboard"
             class="nav-btn flex-1 relative flex flex-col items-center justify-center gap-0.5 py-1 px-2 transition-colors duration-200 ease-out"
             :class="{ active: currentRoute === '/dashboard' }"
@@ -62,14 +62,11 @@
                 </svg>
             </div>
             <span class="text-[11px] leading-none transition-opacity duration-200" :class="isNavigating ? 'opacity-70' : 'opacity-100'">Dashboard</span>
-        </router-link>
+        </NuxtLink>
     </nav>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
-
 const route = useRoute()
 const currentRoute = computed(() => route.path)
 
