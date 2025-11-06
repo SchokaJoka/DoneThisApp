@@ -1,5 +1,5 @@
 <template>
-    <div :style="{ transform: `rotate(${rotation}deg)` }" :class="[colorClass, 'border-2 sticky top-4 flex mb-200 flex-col place-content-between items-center w-full p-5 py-10 text-black min-h-[500px] rounded-sm shadow-sm']">
+    <div :style="{ transform: `rotate(${rotation}deg)` }" :class="[colorClass, 'border border-black sticky top-4 flex flex-col place-content-between items-center w-full p-5 py-10 text-black min-h-[500px]']">
         <div class="w-full">
             <h3 class="text-2xl font-bold text-center">
                 {{ task.name || 'Untitled Task' }}
@@ -29,12 +29,12 @@
             </button> -->
         <div class="flex w-full justify-between">
             <div>
-                <button @click="$emit('edit', task.id)" :class="['flex px-4 py-2 rounded-full', buttonClass]">
+                <button @click="$emit('edit', task.id)" class="flex px-4 py-2 bg-orange-100 rounded-full">
                     bearbeiten
                 </button>
             </div>
             <div>
-                <button @click="" :class="['flex px-4 py-2 rounded-full', buttonClass]">
+                <button @click="" class="flex px-4 py-2 bg-orange-100 rounded-full">
                     fokussieren
                 </button>
             </div>
@@ -54,11 +54,11 @@ const props = defineProps({
     // rotation range (degrees)
     minRotation: {
         type: Number,
-        default: -2
+        default: -3
     },
     maxRotation: {
         type: Number,
-        default: 2
+        default: 3
     }
 })
 
@@ -66,9 +66,9 @@ const rotation = ref(0)
 
 // color style options (Tailwind classes) — each option includes a card and a matching button style
 const colorOptions = [
-    { card: 'bg-blue-100 text-black border-blue-200', button: 'bg-orange-200 text-black' },
-    { card: 'bg-red-100 text-black border-red-200', button: 'bg-green-200 text-black' },
-    { card: 'bg-yellow-100 text-black border-yellow-200', button: 'bg-violet-200 text-black' }
+    { card: 'bg-blue-100 text-black', button: 'bg-blue-300 text-black' },
+    { card: 'bg-green-100 text-black', button: 'bg-green-300 text-black' },
+    { card: 'bg-yellow-100 text-black', button: 'bg-yellow-300 text-black' }
 ]
 const colorClass = ref(colorOptions[0].card)
 const buttonClass = ref(colorOptions[0].button)
