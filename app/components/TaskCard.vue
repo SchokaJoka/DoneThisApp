@@ -1,75 +1,96 @@
 <template>
-    <div class="bg-white rounded-xl p-5 shadow-md hover:shadow-lg transition-shadow border border-gray-100 flex flex-col h-full">
-        <!-- Task Name -->
-        <h3 class="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
-            {{ task.name || 'Untitled Task' }}
-        </h3>
-
-        <!-- Task Details -->
-        <div class="flex-1 space-y-2 mb-4">
-            <div v-if="task.description" class="text-sm text-gray-600 line-clamp-3">
+    <div :style="{ transform: `rotate(${rotation}deg)` }" :class="[colorClass, 'border-2 sticky top-4 flex mb-200 flex-col place-content-between items-center w-full p-5 py-10 text-black min-h-[500px] rounded-sm shadow-sm']">
+        <div class="w-full">
+            <h3 class="text-2xl font-bold text-center">
+                {{ task.name || 'Untitled Task' }}
+            </h3>
+        </div>
+        <div v-if="task.description" class="w-full">
+            <span class="text-sm text-left text-black">
                 {{ task.description }}
-            </div>
-
-            <div v-if="task.effort" class="flex items-center gap-2 text-sm">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span class="text-gray-700">{{ task.effort }}</span>
-            </div>
-
-            <div v-if="task.due_date" class="flex items-center gap-2 text-sm">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span class="text-gray-700">
-                    {{ formatDate(task.due_date) }}
-                    <span v-if="task.due_time"> at {{ task.due_time }}</span>
-                </span>
-            </div>
+            </span>
+        </div>
+        <div v-if="task.due_date" class="w-full">
+            <span class="text-sm text-left text-black">
+                {{ formatDate(task.due_date) }}
+                <span v-if="task.due_time"> {{ task.due_time }}</span>
+            </span>
         </div>
 
-        <!-- Actions -->
-        <div class="flex items-center gap-2 pt-4 border-t border-gray-100">
-            <button
-                @click="$emit('edit', task.id)"
-                class="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                aria-label="Edit task"
-            >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit
-            </button>
-            <button
+
+            <!-- <button
                 @click="$emit('delete', task.id)"
-                class="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
                 aria-label="Delete task"
             >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 Delete
-            </button>
+            </button> -->
+        <div class="flex w-full justify-between">
+            <div>
+                <button @click="$emit('edit', task.id)" :class="['flex px-4 py-2 rounded-full', buttonClass]">
+                    bearbeiten
+                </button>
+            </div>
+            <div>
+                <button @click="" :class="['flex px-4 py-2 rounded-full', buttonClass]">
+                    fokussieren
+                </button>
+            </div>
+            
         </div>
     </div>
 </template>
 
 <script setup>
-defineProps({
+import { ref, onMounted } from 'vue'
+
+const props = defineProps({
     task: {
         type: Object,
         required: true
+    },
+    // rotation range (degrees)
+    minRotation: {
+        type: Number,
+        default: -2
+    },
+    maxRotation: {
+        type: Number,
+        default: 2
     }
+})
+
+const rotation = ref(0)
+
+// color style options (Tailwind classes) — each option includes a card and a matching button style
+const colorOptions = [
+    { card: 'bg-blue-100 text-black border-blue-200', button: 'bg-orange-200 text-black' },
+    { card: 'bg-red-100 text-black border-red-200', button: 'bg-green-200 text-black' },
+    { card: 'bg-yellow-100 text-black border-yellow-200', button: 'bg-violet-200 text-black' }
+]
+const colorClass = ref(colorOptions[0].card)
+const buttonClass = ref(colorOptions[0].button)
+
+// pick a random rotation on the client only to avoid SSR hydration mismatches
+onMounted(() => {
+    const t = Math.random()
+    rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
+    // pick a random color style on the client (card + matching button)
+    const choice = colorOptions[Math.floor(Math.random() * colorOptions.length)]
+    colorClass.value = choice.card
+    buttonClass.value = choice.button
 })
 
 function formatDate(dateString) {
     if (!dateString) return ''
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+    if (isNaN(date)) return ''
+    return date.toLocaleDateString('de-CH', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
     })
 }
 </script>
