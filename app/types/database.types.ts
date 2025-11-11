@@ -23,6 +23,7 @@ export type Database = {
           effort: string | null
           id: string
           name: string
+          subtasks: string[] | null
           updated_at: string | null
           user_id: string | null
         }
@@ -34,6 +35,7 @@ export type Database = {
           effort?: string | null
           id?: string
           name?: string
+          subtasks?: string[] | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -45,6 +47,7 @@ export type Database = {
           effort?: string | null
           id?: string
           name?: string
+          subtasks?: string[] | null
           updated_at?: string | null
           user_id?: string | null
         }

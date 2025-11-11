@@ -78,6 +78,46 @@
           </div>
         </div>
 
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Subtasks
+          </label>
+          <div class="space-y-2 mb-2">
+            <div 
+              v-for="(subtask, index) in subtasks" 
+              :key="index"
+              class="flex items-center gap-2"
+            >
+              <input 
+                type="checkbox" 
+                v-model="subtask.done"
+                class="cursor-pointer"
+              />
+              <input
+                v-model="subtask.text"
+                class="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none text-sm"
+                placeholder="Subtask text..."
+              />
+              <button
+                @click="removeSubtask(index)"
+                class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                type="button"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button
+            @click="addSubtask"
+            type="button"
+            class="w-full px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+          >
+            + Add Subtask
+          </button>
+        </div>
+
         <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-lg">
           <p class="text-sm text-red-600">{{ error }}</p>
         </div>
@@ -117,6 +157,7 @@ const description = ref('')
 const effort = ref('')
 const due_date = ref('')
 const due_time = ref('')
+const subtasks = ref([])
 
 const { loading, error, task, getTask, updateTask } = useTasks()
 
@@ -130,20 +171,48 @@ onMounted(async () => {
       // normalize date/time to empty string if null so inputs work correctly
       due_date.value = task.value.due_date ?? ''
       due_time.value = task.value.due_time ?? ''
+      
+      // Parse subtasks
+      if (task.value.subtasks && Array.isArray(task.value.subtasks)) {
+        subtasks.value = task.value.subtasks.map(item => {
+          try {
+            if (typeof item === 'string') {
+              return JSON.parse(item)
+            }
+            return item
+          } catch {
+            return { text: item, done: false }
+          }
+        })
+      }
     }
   } catch (e) {
     console.error('Failed to load task for edit', e)
   }
 })
 
+function addSubtask() {
+  subtasks.value.push({ text: '', done: false })
+}
+
+function removeSubtask(index) {
+  subtasks.value.splice(index, 1)
+}
+
 async function save() {
   try {
+    // Convert subtasks to JSON strings for database storage
+    const subtasksForDb = subtasks.value
+      .filter(st => st.text.trim() !== '') // Only save non-empty subtasks
+      .map(st => JSON.stringify(st))
+    
     const payload = {
       name: name.value ?? '',
       description: description.value ?? '',
       effort: effort.value ?? '',
       due_date: due_date.value === '' ? null : due_date.value,
-      due_time: due_time.value === '' ? null : due_time.value
+      due_time: due_time.value === '' ? null : due_time.value,
+      subtasks: subtasksForDb.length > 0 ? subtasksForDb : null
     }
 
     const updated = await updateTask(props.taskId, payload)

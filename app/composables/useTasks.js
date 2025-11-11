@@ -35,7 +35,8 @@ export function useTasks() {
         description: properties.description || null,
         effort: properties.effort || null,
         due_date: properties.due_date || null,
-        due_time: properties.due_time || null
+        due_time: properties.due_time || null,
+        subtasks: properties.subtasks || null
       }
 
       const created = await $fetch('/api/tasks', {

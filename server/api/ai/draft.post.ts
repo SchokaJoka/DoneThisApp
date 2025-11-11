@@ -13,8 +13,18 @@ export default defineEventHandler(async (event) => {
 
   const replicate = new Replicate({ auth: replicateApiToken })
 
+  const now = new Date()
+  const currentDateTime = now.toISOString() // e.g. 2025-11-11T13:45:30.000Z
+  const currentDate = currentDateTime.slice(0, 10) // YYYY-MM-DD
+  const currentTime = currentDateTime.slice(11, 19) // HH:MM:SS
+
   const systemPrompt = `
-You are helping a user define a single task through a short conversation. You receive:
+You are helping a user define a single task through a short conversation.
+Current server date/time (ISO 8601, UTC): ${currentDateTime}
+Current server date: ${currentDate}
+Current server time (UTC): ${currentTime}
+
+You receive:
 - current_draft: a partial task object (may be empty)
 - user_transcript: the user's latest spoken input
 
@@ -25,7 +35,8 @@ Your job:
      "name": string,               // short, imperative (<= 10 words)
      "priority": "low"|"medium"|"high",
      "due_date": string|null,     // ISO YYYY-MM-DD or null if no exact date
-     "description": string        // 1-2 concise sentences
+     "description": string,       // 1-2 concise sentences
+     "subtasks": array|null       // array of strings representing subtasks, or null if none mentioned
    }
 3) Identify which fields are still missing or weakly specified.
 4) Ask ONE clear follow-up question to help complete the task. If everything looks complete, ask a short confirmation question.
@@ -33,12 +44,13 @@ Your job:
 Rules:
 - Derive priority from language cues ("ASAP" -> high, "by Friday" -> medium, etc.).
 - Only set due_date when an exact date is known; otherwise null.
+- If user mentions steps, checkpoints, or subtasks, extract them into the subtasks array as strings.
 - Do not invent facts. Use only provided information.
 - Write messages in the same language as the user_transcript.
 
 Return a JSON object:
 {
-  "task": { name, priority, due_date, description },
+  "task": { name, priority, due_date, description, subtasks },
   "missingFields": string[],
   "message": string,
   "nextQuestion": string
@@ -64,7 +76,7 @@ Return a JSON object:
     ai = JSON.parse(aiRaw)
   } catch {
     ai = {
-      task: { name: '', priority: 'low', due_date: null, description: '' },
+      task: { name: '', priority: 'low', due_date: null, description: '', subtasks: null },
       missingFields: ['name', 'description'],
       message: aiRaw,
       nextQuestion: 'Could you restate the task name and a brief description?'
