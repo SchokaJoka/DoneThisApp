@@ -1,19 +1,23 @@
 <template>
-  <div class="bg-violet-600 w-screen h-screen flex flex-col items-center grow shrink-0 basis-0 self-stretch">
-    <div class="flex max-w-[500px] flex-col items-center gap-1 bg-orange-600">
+  <div>
+    <div class="sticky top-0 z-50 w-full flex flex-col items-center gap-1 bg-orange-600">
       <h1 class="text-3xl font-bold text-gray-900">My Tasks</h1>
       <p class="text-gray-600">Manage and organize your tasks</p>
     </div>
 
-    <div class="w-screen">
-      <div class="bg-green-500">
-        <TaskCard
+    <div class="bg-green-500 w-full flex justify-center">
+      <div class="bg-red-500 w-full max-w-2xl px-4 py-6 flex flex-col items-center gap-4">
+        <div
           v-for="task in tasks"
           :key="task.id"
-          :task="task"
-          @edit="openEditor"
-          @delete="verifyDelete"
-        />
+          class="w-full sticky top-16 flex justify-center"
+        >
+          <TaskCard
+            :task="task"
+            @edit="openEditor"
+            @delete="verifyDelete"
+          />
+        </div>
       </div>
     </div>
   </div>
