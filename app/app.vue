@@ -1,8 +1,8 @@
 <template>
-  <div class="relative min-h-screen pb-16">
+  <div class="relative h-screen pb-16">
     <div class="fixed inset-0 -z-10 bg-orange-50"></div>
     <NuxtPage />
-    <Navigation />
+    <!-- <Navigation /> -->
   </div>
 </template>
 

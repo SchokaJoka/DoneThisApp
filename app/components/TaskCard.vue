@@ -1,5 +1,8 @@
 <template>
-    <div :style="{ transform: `rotate(${rotation}deg)` }" :class="[colorClass, 'border border-black sticky top-4 flex flex-col place-content-between items-center w-full p-5 py-10 text-black min-h-[500px]']">
+    <div
+        :style="{ transform: `rotate(${rotation}deg)` }"
+        :class="[colorClass, 'border-2 flex flex-col items-center self-stretch max-w-[400px] min-h-[500px] px-[20px] py-[30px] gap-[98.7px] rotate-[1.956deg]']"
+    >
         <div class="w-full">
             <h3 class="text-2xl font-bold text-center">
                 {{ task.name || 'Untitled Task' }}
@@ -17,16 +20,6 @@
             </span>
         </div>
 
-
-            <!-- <button
-                @click="$emit('delete', task.id)"
-                aria-label="Delete task"
-            >
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete
-            </button> -->
         <div class="flex w-full justify-between">
             <div>
                 <button @click="$emit('edit', task.id)" class="flex px-4 py-2 bg-orange-100 rounded-full">
@@ -38,7 +31,6 @@
                     fokussieren
                 </button>
             </div>
-            
         </div>
     </div>
 </template>
@@ -66,9 +58,9 @@ const rotation = ref(0)
 
 // color style options (Tailwind classes) — each option includes a card and a matching button style
 const colorOptions = [
-    { card: 'bg-blue-100 text-black', button: 'bg-blue-300 text-black' },
-    { card: 'bg-green-100 text-black', button: 'bg-green-300 text-black' },
-    { card: 'bg-yellow-100 text-black', button: 'bg-yellow-300 text-black' }
+    { card: 'bg-blue-100 border-blue-200 text-black', button: 'bg-blue-300 text-black' },
+    { card: 'bg-red-100 border-red-200 text-black', button: 'bg-green-300 text-black' },
+    { card: 'bg-yellow-100 border-yellow-200 text-black', button: 'bg-yellow-300 text-black' }
 ]
 const colorClass = ref(colorOptions[0].card)
 const buttonClass = ref(colorOptions[0].button)
