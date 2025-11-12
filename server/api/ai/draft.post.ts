@@ -33,7 +33,6 @@ Your job:
 2) Keep the task schema exactly:
    {
      "name": string,               // short, imperative (<= 10 words)
-     "priority": "low"|"medium"|"high",
      "due_date": string|null,     // ISO YYYY-MM-DD or null if no exact date
      "description": string,       // 1-2 concise sentences
      "subtasks": array|null       // array of strings representing subtasks, or null if none mentioned
@@ -42,7 +41,6 @@ Your job:
 4) Ask ONE clear follow-up question to help complete the task. If everything looks complete, ask a short confirmation question.
 
 Rules:
-- Derive priority from language cues ("ASAP" -> high, "by Friday" -> medium, etc.).
 - Only set due_date when an exact date is known; otherwise null.
 - If user mentions steps, checkpoints, or subtasks, extract them into the subtasks array as strings.
 - Do not invent facts. Use only provided information.
@@ -50,7 +48,7 @@ Rules:
 
 Return a JSON object:
 {
-  "task": { name, priority, due_date, description, subtasks },
+  "task": { name, due_date, description, subtasks },
   "missingFields": string[],
   "message": string,
   "nextQuestion": string
@@ -76,7 +74,7 @@ Return a JSON object:
     ai = JSON.parse(aiRaw)
   } catch {
     ai = {
-      task: { name: '', priority: 'low', due_date: null, description: '', subtasks: null },
+      task: { name: '', due_date: null, description: '', subtasks: null },
       missingFields: ['name', 'description'],
       message: aiRaw,
       nextQuestion: 'Could you restate the task name and a brief description?'
