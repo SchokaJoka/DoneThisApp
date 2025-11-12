@@ -41,17 +41,6 @@
           ></textarea>
         </div>
 
-        <div>
-          <label for="edit-effort" class="block text-sm font-medium text-gray-700 mb-2">
-            Effort
-          </label>
-          <input
-            id="edit-effort"
-            v-model="effort"
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none"
-          />
-        </div>
-
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label for="edit-due-date" class="block text-sm font-medium text-gray-700 mb-2">
@@ -154,7 +143,6 @@ const emit = defineEmits(['close','saved'])
 
 const name = ref('')
 const description = ref('')
-const effort = ref('')
 const due_date = ref('')
 const due_time = ref('')
 const subtasks = ref([])
@@ -167,7 +155,6 @@ onMounted(async () => {
     if (task.value) {
       name.value = task.value.name ?? ''
       description.value = task.value.description ?? ''
-      effort.value = task.value.effort ?? ''
       // normalize date/time to empty string if null so inputs work correctly
       due_date.value = task.value.due_date ?? ''
       due_time.value = task.value.due_time ?? ''
@@ -209,7 +196,6 @@ async function save() {
     const payload = {
       name: name.value ?? '',
       description: description.value ?? '',
-      effort: effort.value ?? '',
       due_date: due_date.value === '' ? null : due_date.value,
       due_time: due_time.value === '' ? null : due_time.value,
       subtasks: subtasksForDb.length > 0 ? subtasksForDb : null

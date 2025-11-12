@@ -4,7 +4,6 @@ const { loading, error, tasks, getTasks, createTask } = useTasks()
 
 const name = ref('')
 const description = ref('')
-const effort = ref('')
 const dueDate = ref(null)
 const dueTime = ref(null)
 
@@ -13,14 +12,12 @@ async function add() {
   await createTask({
     name: name.value || '',
     description: description.value || '',
-    effort: effort.value || '',
     due_date: dueDate.value || null,
     due_time: dueTime.value || null
   })
   // clear form
   name.value = ''
   description.value = ''
-  effort.value = ''
   dueDate.value = null
   dueTime.value = null
 }
@@ -58,11 +55,21 @@ async function add() {
       <label for="effort" class="block text-sm font-medium text-gray-700 mb-2">
         Effort
       </label>
-      <input
-        id="effort"
-        v-model="effort"
-        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none"
-        placeholder="e.g. 2h, small, medium"
+
+      <label class="block mb-3">
+        <span class="text-sm font-medium text-slate-700">Effort</span>
+        <input
+          v-model="effort"
+          class="mt-1 block w-full rounded-md border-gray-200 p-2"
+          placeholder="e.g. 2h, small, medium"
+        />
+      </label>
+      <textarea
+        id="description"
+        v-model="description"
+        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none resize-none"
+        rows="4"
+        placeholder="Optional description or additional details"
       />
     </div>
 

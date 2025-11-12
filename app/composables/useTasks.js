@@ -33,7 +33,6 @@ export function useTasks() {
       const body = {
         name: properties.name,
         description: properties.description || null,
-        effort: properties.effort || null,
         due_date: properties.due_date || null,
         due_time: properties.due_time || null,
         subtasks: properties.subtasks || null

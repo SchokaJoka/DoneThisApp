@@ -20,7 +20,6 @@ export type Database = {
           description: string | null
           due_date: string | null
           due_time: string | null
-          effort: string | null
           id: string
           name: string
           subtasks: string[] | null
@@ -32,7 +31,6 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           due_time?: string | null
-          effort?: string | null
           id?: string
           name?: string
           subtasks?: string[] | null
@@ -44,39 +42,11 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           due_time?: string | null
-          effort?: string | null
           id?: string
           name?: string
           subtasks?: string[] | null
           updated_at?: string | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      tasks_old: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          priority: number | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          priority?: number | null
-          updated_at?: string
-          user_id?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          priority?: number | null
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
