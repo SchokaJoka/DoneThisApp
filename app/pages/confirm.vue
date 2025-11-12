@@ -3,7 +3,7 @@ const user = useSupabaseUser()
 
 watch(user, () => {
   if (user.value) {
-      return navigateTo('/dashboard')
+      return navigateTo('/mytasks')
   }
 }, { immediate: true })
 </script>
