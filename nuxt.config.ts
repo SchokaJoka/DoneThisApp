@@ -2,7 +2,13 @@
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: false },
-  modules: ["@nuxtjs/tailwindcss", "@nuxtjs/supabase"],
+  modules: ["@nuxtjs/tailwindcss", "@nuxtjs/supabase", "@nuxt/fonts"],
+  fonts: {
+    families: [
+      { name: 'Baloo Chettan 2', provider: 'google' },
+      { name: 'Roboto', provider: 'google' }
+    ]
+  },
   runtimeConfig: {
     // Private server-only token for Replicate
     replicateApiToken: process.env.REPLICATE_API_TOKEN,
