@@ -27,7 +27,6 @@ type DraftTask = {
 
 const draftTask = ref<DraftTask>({ name: '', due_date: null, description: '', subtasks: null })
 const aiMessage = ref('')
-const nextQuestion = ref('')
 const missingFields = ref<string[]>([])
 const messages = ref<Array<{ role: 'assistant' | 'user', content: string }>>([
   { role: 'assistant', content: 'What can I help you with today?' }
@@ -60,8 +59,7 @@ const uploadAndTranscribe = async () => {
     })
     console.log('[client] /api/ai/draft response:', dRes)
     const ai = dRes?.ai || {}
-    aiMessage.value = ai.message || ''
-    nextQuestion.value = ai.nextQuestion || ''
+    aiMessage.value = ai.aiMessage || ''
     missingFields.value = Array.isArray(ai.missingFields) ? ai.missingFields : []
     if (ai.task && typeof ai.task === 'object') {
       draftTask.value = {
@@ -72,7 +70,6 @@ const uploadAndTranscribe = async () => {
       }
     }
     if (aiMessage.value) messages.value.push({ role: 'assistant', content: aiMessage.value })
-    if (nextQuestion.value) messages.value.push({ role: 'assistant', content: nextQuestion.value })
   } catch (e: any) {
     errorMsg.value = e?.data?.statusMessage || e?.data?.message || e?.message || 'Failed to transcribe'
   } finally {
@@ -196,7 +193,6 @@ const clearAll = () => {
   }
   transcript.value = ''
   aiMessage.value = ''
-  nextQuestion.value = ''
   missingFields.value = []
   messages.value = [{ role: 'assistant', content: 'What can I help you with today?' }]
   draftTask.value = { name: '', due_date: null, description: '', subtasks: null }

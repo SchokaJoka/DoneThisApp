@@ -1,9 +1,9 @@
 <template>
-  <div>
-    <div class="sticky top-0 left-0 right-0 z-50 flex items-center justify-between p-4">
+  <div class="p-4 h-[10vh]">
+    <div class="flex items-center justify-between mb-4">
       <div class="flex flex-col">
         <h1 class="text-2xl font-bold">My Tasks</h1>
-        <p class="text-sm">Manage and organize your tasks</p>
+        <p class="text-sm">Single test task</p>
       </div>
       <div class="pr-4">
         <NuxtLink
@@ -17,23 +17,24 @@
         </NuxtLink>
       </div>
     </div>
+  </div>
 
-    <div class="h-[90vh] overflow-hidden p-4">
-      <div ref="scrollContainer" class="h-[150vh] w-full overflow-y-auto scroll-smooth snap-y snap-mandatory">
-        <div
-          v-for="task in tasks"
-          :key="task.id"
-          class="snap-start snap-always h-[75vh] w-full sticky top-16 flex flex-col items-center"
-        >
-          <TaskCard
-            :task="task"
-            @edit="() => openEditor(task.id)"
-            @delete="() => verifyDelete(task.id)"
-            @subtask-toggle="handleSubtaskToggle"
-          />
-        </div>
-        <div class="snap-start snap-always h-[75vh] w-full sticky top-16 flex flex-col items-center"/>
+  <div class="h-[90vh] p-4">
+    <div ref="scrollContainer" class="h-[150vh] p-4 w-full scroll-smooth snap-y snap-mandatory">
+      <div
+        v-for="task in tasks"
+        :key="task.id"
+        class="snap-start snap-always h-[75vh] w-full top-16 flex flex-col items-center"
+      >
+        <TaskCard
+          :task="task"
+          :enable-rotation="false"
+          @delete="() => verifyDelete(task.id)"
+          @subtask-toggle="handleSubtaskToggle"
+          @save="handleSave"
+        />
       </div>
+      <div class="snap-start snap-always h-[75vh] w-full sticky top-16 flex flex-col items-center"/>
     </div>
   </div>
   <TaskEditOverlay v-if="editingTaskId" :task-id="editingTaskId" @close="closeEditor" />
@@ -54,15 +55,6 @@ onMounted(async () => {
     scrollContainer.value.scrollTo({ top: 0, behavior: 'instant' })
   }
 })
-
-function openEditor(taskId) {
-  editingTaskId.value = taskId
-}
-
-function closeEditor() {
-    getTasks()
-    editingTaskId.value = null
-}
 
 function verifyDelete(taskId) {
     if (confirm('Are you sure you want to delete this task?')) {
@@ -103,23 +95,9 @@ async function handleSubtaskToggle({ taskId, subtaskIndex }) {
     // Refresh tasks
     await getTasks()
 }
+
+async function handleSave({ taskId, updates }) {
+    await updateTask(taskId, updates)
+    await getTasks()
+}
 </script>
-
-<!-- <script>
-// async function fetchTasks() {
-//     const { data: user } = await supabase.auth.getUser()
-//     if (!user?.user) return
-
-//     const { data, error: fetchError } = await supabase
-//     .from('tasks')
-//     .select('*')
-//     .eq('user_id', user.user.id)
-//     .order('id', { ascending: false })
-
-//     if (fetchError) {
-//         error.value = fetchError.message
-//     } else {
-//         tasks.value = data || []
-//     }
-// } 
-</script> -->

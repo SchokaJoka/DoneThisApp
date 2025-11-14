@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
   const replicate = new Replicate({ auth: replicateApiToken })
   const input = {
-    language: '',
+    language: 'de',  // German
     audio_file: body.audioUrl,
   }
 
