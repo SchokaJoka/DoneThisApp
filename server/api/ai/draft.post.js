@@ -35,20 +35,38 @@ export default defineEventHandler(async (event) => {
         "name": string,               // short, imperative (<= 10 words)
         "due_date": string|null,     // ISO YYYY-MM-DD or null if no exact date
         "description": string,       // 1-2 concise sentences
-        "subtasks": array|null       // array of strings representing subtasks, or null if none mentioned
       }
-    3) Identify which fields are still missing or weakly specified.
-    4) Ask ONE clear follow-up question to help complete the task. If everything looks complete, ask a short confirmation question.
+    3) Extract any steps, checkpoints, or subtasks mentioned into an array of subtasks:
+      {
+        "subtask_1": { "name": string },
+        "subtask_2": { "name": string },
+        ...
+      }
+    4) Identify any fields that are still missing or weakly specified.
+    5) Ask ONE clear follow-up question to help complete the task. If everything looks complete, ask a short confirmation question.
 
     Rules:
-    - Only set due_date when an exact date is known; otherwise null.
+    - Only set due_date when an exact date is mentioned; otherwise null.
     - If user mentions steps, checkpoints, or subtasks, extract them into the subtasks array as strings.
-    - Do not invent facts. Use only provided information.
+    - Do not invent facts or subtasks. Use only provided information.
     - Write messages in the same language as the user_transcript but German is mostly used.
 
     Return a JSON object:
     {
-      "task": { name, due_date, description, subtasks },
+      "task": { 
+        name, 
+        due_date, 
+        description, 
+      },
+      "subtasks": { 
+        "subtask_1": {
+          "name": string,
+        },
+        "subtask_2": {
+          "name": string,
+        },
+        ...
+      },
       "missingFields": string[],
       "aiMessage": string,
     }
@@ -64,20 +82,23 @@ export default defineEventHandler(async (event) => {
   const output = await replicate.run('openai/gpt-4o-mini', { input })
   
   const response = output.join('')
-  
-  let ai
+
+  console.log('[api/ai/draft.post.js] response: ', response)
+
+  let draftResponse
   
   try {
-    ai = JSON.parse(response)
+    draftResponse = JSON.parse(response)
+    console.log('[api/ai/draft.post.js] draftResponse: ', draftResponse)
   } catch {
-    ai = {
+    draftResponse = {
       task: { name: 'Not Specified', due_date: null, description: 'Not Speficied', subtasks: null },
       missingFields: [],
       aiMessage: 'Could you restate the task?'
     }
   }
 
-  return { ai }
+  return { draftResponse }
 })
 
 

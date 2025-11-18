@@ -1,7 +1,7 @@
 import Replicate from 'replicate'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ audioUrl?: string }>(event)
+  const body = await readBody(event)
   if (!body?.audioUrl) {
     throw createError({ statusCode: 400, statusMessage: 'audioUrl is required' })
   }
@@ -13,18 +13,24 @@ export default defineEventHandler(async (event) => {
 
   const replicate = new Replicate({ auth: replicateApiToken })
   const input = {
-    language: 'de',  // German
+    language: 'de',
     audio_file: body.audioUrl,
   }
 
-  // Replicate.run returns various shapes depending on model; normalize to text
-  const output = await replicate.run('openai/gpt-4o-mini-transcribe', { input } as any)
-  const text = Array.isArray(output)
-    ? output.join('')
-    : typeof output === 'string'
-      ? output
-      : JSON.stringify(output)
+  let output
+  try {
+    output = await replicate.run('openai/gpt-4o-mini-transcribe', { input })
+    
+  } catch (err) {
+    console.error('[api/ai/transcribe.post.js] transcription error:', err)
+    throw createError({
+      statusCode: 500,
+      statusMessage: `Transcription failed: ${err?.message ?? 'unknown error'}`
+    })
+  }
 
-  // This endpoint is now responsible ONLY for transcription
-  return { text }
+  console.log('[api/ai/transcribe.post.js] output: ', output)
+  const text = output.join('')
+
+  return text
 })
