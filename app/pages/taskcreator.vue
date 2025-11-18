@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
     </div>
     <!-- Recording button -->
   </div>
-  <div class=" w-16 h-16 fixed bottom-env(safe-area-inset-bottom,0px)] flex justify-center items-center px-4 pb-4">
+  <div class="w-full h-16 fixed bottom-[env(safe-area-inset-bottom,0px)] flex justify-center items-center px-4 pb-4">
     <div class="w-full bg-red-400 flex justify-center items-center ">
       <button 
         @click="isRecording ? stopRecording() : startRecording()"
