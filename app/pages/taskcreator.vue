@@ -211,8 +211,8 @@ onBeforeUnmount(() => {
   <div class="w-screen h-screen flex flex-col justify-between" >
 
     <!-- User Task -->
-    <div class="w-full h-[60vh] flex justify-center items center pt-4 px-4">
-      <div class="z-20 w-full h-full flex flex-col justify-between items-start bg-[url(assets/img/bg-card/yellow-circle.png)] bg-cover p-[11px] rounded-[21px]">
+    <div class="sticky top-0 z-30 w-full h-[60vh] flex justify-center items-center pt-4 px-4">
+      <div class="w-full h-full flex flex-col justify-between items-start bg-[url(assets/img/bg-card/yellow-circle.png)] bg-cover p-[11px] rounded-[21px] shadow">
         <h3>User Task</h3>
         <p>Name: {{ userTask.name || 'Not set' }}</p>
         <p>Description: {{ userTask.description || 'Not set' }}</p>
@@ -265,26 +265,26 @@ onBeforeUnmount(() => {
       </div>
     </div>
     <!-- Recording button -->
-    <div class="w-full h-16 flex justify-center items-center px-4 pb-4">
-      <div class="w-full bg-red-400 flex justify-center items-center ">
-        <button 
-          @click="isRecording ? stopRecording() : startRecording()"
-          :class="[
-            'flex items-center justify-center w-16 h-16 text-white font-medium rounded-full transition-colors shadow',
-            isRecording ? 'bg-red-600 hover:bg-red-700 animate-pulse' : 'bg-green-600 hover:bg-green-700'
-          ]"
-        >
-          <template v-if="!isRecording">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-            </svg>
-          </template>
-          <template v-else>
-            <div class="w-3 h-3 bg-white rounded-full"></div>
-          </template>
-        </button>
-      </div>
+  </div>
+  <div class=" w-16 h-16 fixed bottom-env(safe-area-inset-bottom,0px)] flex justify-center items-center px-4 pb-4">
+    <div class="w-full bg-red-400 flex justify-center items-center ">
+      <button 
+        @click="isRecording ? stopRecording() : startRecording()"
+        :class="[
+          'flex items-center justify-center w-16 h-16 text-white font-medium rounded-full transition-colors shadow',
+          isRecording ? 'bg-red-600 hover:bg-red-700 animate-pulse' : 'bg-green-600 hover:bg-green-700'
+        ]"
+      >
+        <template v-if="!isRecording">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+          </svg>
+        </template>
+        <template v-else>
+          <div class="w-3 h-3 bg-white rounded-full"></div>
+        </template>
+      </button>
     </div>
   </div>
 </template>
