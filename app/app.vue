@@ -1,3 +1,6 @@
 <template>
-  <NuxtPage/>
+  <div class="h-dvh w-dvw">
+
+    <NuxtPage/>
+  </div>
 </template>

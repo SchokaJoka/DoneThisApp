@@ -208,7 +208,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="w-screen h-screen flex flex-col justify-between" >
+  <div class="w-full h-full flex flex-col justify-between" >
 
     <!-- User Task -->
     <div class="sticky top-0 z-30 w-full h-[60vh] flex justify-center items-center pt-4 px-4">
