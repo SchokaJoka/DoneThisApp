@@ -208,21 +208,23 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="w-full h-full flex flex-col justify-between" >
+  <div class="w-full h-[90dvh] flex flex-col justify-between" >
 
     <!-- User Task -->
-    <div class="sticky top-0 z-30 w-full h-[60vh] flex justify-center items-center pt-4 px-4">
-      <div class="w-full h-full flex flex-col justify-between items-start bg-[url(assets/img/bg-card/yellow-circle.png)] bg-cover p-[11px] rounded-[21px] shadow">
+    <div class="sticky top-0 z-30 w-full h-full flex justify-center items-center pt-4 px-4">
+      <div class="w-full h-full flex flex-col justify-between items-start bg-orange-200 bg-cover p-[11px] rounded-[21px]">
         <h3>User Task</h3>
-        <p>Name: {{ userTask.name || 'Not set' }}</p>
-        <p>Description: {{ userTask.description || 'Not set' }}</p>
-        <p>Category: {{ userTask.category || 'Not set' }}</p>
-        <p>Due Date: {{ userTask.due_date || 'Not set' }}</p>
-        <p>Due Time: {{ userTask.due_time || 'Not set' }}</p>
+        <form action="submit">
+          <input v-model="userTask.name.value" placeholder="Name" />
+          <input v-model="userTask.description.value" placeholder="Description" />
+          <p>Category</p>
+          <input v-model="userTask.name.value" placeholder="Name" />
+          <input v-model="userTask.name.value" placeholder="Name" />
+        </form>
       </div>
     </div>
     <div class="w-full overflow-hidden overflow-y-scroll flex justify-center items center px-4">
-      <div class="w-full flex flex-col justify-between items-start bg-yellow-300">
+      <div class="w-full flex flex-col justify-between items-start">
         <div v-if="user">
           UserID: {{ user.sub }}
         </div>
@@ -266,8 +268,8 @@ onBeforeUnmount(() => {
     </div>
     <!-- Recording button -->
   </div>
-  <div class="w-full h-16 fixed bottom-[env(safe-area-inset-bottom,0px)] flex justify-center items-center px-4 pb-4">
-    <div class="w-full bg-red-400 flex justify-center items-center ">
+  <div class="w-full h-[10dvh] fixed bottom-[env(safe-area-inset-bottom,0px)] flex justify-center items-center p-4">
+    <div class="w-full h-full flex justify-center items-center p-4">
       <button 
         @click="isRecording ? stopRecording() : startRecording()"
         :class="[
