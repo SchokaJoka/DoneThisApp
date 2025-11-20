@@ -165,33 +165,34 @@ function supportedType() {
   return ''
 }
 
-async function startRecording() {
+function startRecording() {
   errorMsg.value = ''
-  try {
-    // Request mic access
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    mediaStream.value = stream
-    const type = supportedType()
-    const mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined)
-    chunks.length = 0
-    
-    mr.ondataavailable = (e) => {
-      if (e.data && e.data.size > 0) chunks.push(e.data)
-    }
-    
-    mr.onstop = async () => {
-      const typeFinal = mr.mimeType || 'audio/webm'
-      audioBlob.value = new Blob(chunks, { type: typeFinal })
-    }
-    
-    mr.start()
-    recorder.value = mr
-    isRecording.value = true
-  } catch (e) {
-    errorMsg.value = e?.message || 'Microphone permission denied or unsupported browser.'
-  }
-
-  return
+  
+  // Request mic access synchronously to maintain user gesture chain on iOS
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      mediaStream.value = stream
+      const type = supportedType()
+      const mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined)
+      chunks.length = 0
+      
+      mr.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data)
+      }
+      
+      mr.onstop = async () => {
+        const typeFinal = mr.mimeType || 'audio/webm'
+        audioBlob.value = new Blob(chunks, { type: typeFinal })
+      }
+      
+      mr.start()
+      recorder.value = mr
+      isRecording.value = true
+    })
+    .catch(e => {
+      errorMsg.value = e?.message || 'Microphone permission denied or unsupported browser.'
+      console.error('getUserMedia error:', e)
+    })
 }
 
 async function stopRecording() {
