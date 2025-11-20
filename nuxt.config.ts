@@ -1,16 +1,22 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
+import tailwindcss from "@tailwindcss/vite";
+
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: false },
-  modules: ["@nuxtjs/tailwindcss", "@nuxtjs/supabase", "@nuxt/fonts"],
+  modules: ["@nuxtjs/supabase", "@nuxt/fonts", "nuxt-lottie"],
   fonts: {
     families: [
       { name: 'Baloo Chettan 2', provider: 'google' },
       { name: 'Roboto', provider: 'google' }
     ]
   },
+  css: ['~/assets/css/main.css'],
+  vite: {
+    plugins: [tailwindcss()],
+  },
   runtimeConfig: {
-    // Private server-only token for Replicate
     replicateApiToken: process.env.REPLICATE_API_TOKEN,
   },
   hooks: {

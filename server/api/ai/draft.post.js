@@ -11,6 +11,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'REPLICATE_API_TOKEN is not configured' })
   }
 
+
+  console.log('[api/ai/draft.post.js] body: ', body)
+
   const replicate = new Replicate({ auth: replicateApiToken })
 
   const now = new Date()
@@ -25,16 +28,19 @@ export default defineEventHandler(async (event) => {
     Current server time (UTC): ${currentTime}
 
     You receive:
-    - current_draft: a partial task object (may be empty)
-    - user_transcript: the user's latest spoken input
+    - currentDraft: a partial task object (may be empty)
+    - userTranscript: the user's spoken input in an array of strings
+    - userCategories: an array of categories provided by the user to choose from
 
     Your job:
-    1) Merge any new concrete details from user_transcript into current_draft.
+    1) Merge any new concrete details from userTranscript into currentDraft.
     2) Keep the task schema exactly:
       {
-        "name": string,               // short, imperative (<= 10 words)
+        "name": string|null,         // short, imperative (<= 10 words)
+        "category": string|null,     // from the input provided categories which match the best or null
         "due_date": string|null,     // ISO YYYY-MM-DD or null if no exact date
-        "description": string,       // 1-2 concise sentences
+        "due_time": string|null,     // HH:MM:SS (24h) or null if no exact time
+        "description": string|null,  // 1-2 concise sentences
       }
     3) Extract any steps, checkpoints, or subtasks mentioned into an array of subtasks:
       {
@@ -48,6 +54,9 @@ export default defineEventHandler(async (event) => {
     Rules:
     - Only set due_date when an exact date is mentioned; otherwise null.
     - If user mentions steps, checkpoints, or subtasks, extract them into the subtasks array as strings.
+    - Use cheerful and motivating language in your follow-up question.
+    - If userCategories is non-empty, choose the best matching category; otherwise set to null.
+    - Always respond in JSON format as specified below.
     - Do not invent facts or subtasks. Use only provided information.
     - Write messages in the same language as the user_transcript but German is mostly used.
 
@@ -75,8 +84,10 @@ export default defineEventHandler(async (event) => {
   const input = {
     system_prompt: systemPrompt,
     prompt: JSON.stringify({ 
-      current_draft: body.draftTask ?? null, 
-      user_transcript: body.transcript }) 
+      currentDraft: body.draftTask ?? null, 
+      userTranscript: body.transcript,
+      userCategories: body.userCategories ?? []
+    }) 
   }
 
   const output = await replicate.run('openai/gpt-4o-mini', { input })
@@ -89,7 +100,6 @@ export default defineEventHandler(async (event) => {
   
   try {
     draftResponse = JSON.parse(response)
-    console.log('[api/ai/draft.post.js] draftResponse: ', draftResponse)
   } catch {
     draftResponse = {
       task: { name: 'Not Specified', due_date: null, description: 'Not Speficied', subtasks: null },
