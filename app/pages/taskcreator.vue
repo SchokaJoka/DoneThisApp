@@ -1,99 +1,163 @@
-<script setup lang="ts">
+<script setup>
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-const { createTask, loading: creatingTask } = useTasks()
-const router = useRouter()
 
 // Recording state
+// =================================
 const isRecording = ref(false)
-const recorder = shallowRef<MediaRecorder | null>(null)
-const mediaStream = shallowRef<MediaStream | null>(null)
-const chunks: BlobPart[] = []
-const audioBlob = shallowRef<Blob | null>(null)
-const audioObjectUrl = ref<string | null>(null)
-
-// Transcription / chat state
-const language = ref('en')
-const transcript = ref('')
-const loading = ref(false)
+const recorder = shallowRef(null)
+const mediaStream = shallowRef(null)
+const chunks = []
+const audioBlob = shallowRef(null)
 const errorMsg = ref('')
+// =================================
 
-type DraftTask = {
-  name: string
-  due_date: string | null
-  description: string
-  subtasks: string[] | null
+// user ID
+const userId = ref(user.value.sub)
+
+// transcript
+const userTranscript = ref([])
+const assistantResponse = ref({})
+
+const assistantDraft = ref({})
+const assistantMessage = ref(['Hallo! Erzähle mir von deiner Aufgabe. Ich helfe dir, sie zu erstellen.'])
+const displayedText = ref('')
+const isTyping = ref(false)
+
+const userTask = {
+  name: ref(''),
+  description: ref(''),
+  category_id: ref(''),
+  due_date: ref(''),
+  due_time: ref(''),
+  status: ref(0)
 }
 
-const draftTask = ref<DraftTask>({ name: '', due_date: null, description: '', subtasks: null })
-const aiMessage = ref('')
-const missingFields = ref<string[]>([])
-const messages = ref<Array<{ role: 'assistant' | 'user', content: string }>>([
-  { role: 'assistant', content: 'What can I help you with today?' }
-])
+const userCategories = ref({})
+const categoryDropdownOpen = ref(false)
+const dateTimePickerOpen = ref(false)
 
-const extractedTask = computed(() => {
-  if (!draftTask.value || !draftTask.value.name) return null
-  return draftTask.value
+// Date/Time picker state
+const selectedYear = ref(new Date().getFullYear())
+const selectedMonth = ref(new Date().getMonth())
+const selectedDay = ref(new Date().getDate())
+const selectedHour = ref(12)
+const selectedMinute = ref(0)
+
+// Helper functions for date picker
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate()
+}
+
+function getFirstDayOfMonth(year, month) {
+  return new Date(year, month, 1).getDay()
+}
+
+function formatDateTime() {
+  if (!userTask.due_date.value && !userTask.due_time.value) return 'Date Time'
+  const date = userTask.due_date.value ? new Date(userTask.due_date.value).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }) : ''
+  const time = userTask.due_time.value || ''
+  return `${date} ${time}`.trim()
+}
+
+function applyDateTime() {
+  const year = selectedYear.value
+  const month = String(selectedMonth.value + 1).padStart(2, '0')
+  const day = String(selectedDay.value).padStart(2, '0')
+  userTask.due_date.value = `${year}-${month}-${day}`
+  
+  const hour = String(selectedHour.value).padStart(2, '0')
+  const minute = String(selectedMinute.value).padStart(2, '0')
+  userTask.due_time.value = `${hour}:${minute}`
+  
+  dateTimePickerOpen.value = false
+}
+
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+
+
+// Typing animation function
+function typeText(text, speed = 25) {
+  return new Promise((resolve) => {
+    isTyping.value = true
+    displayedText.value = ''
+    let index = 0
+    
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        displayedText.value += text[index]
+        index++
+      } else {
+        clearInterval(interval)
+        isTyping.value = false
+        resolve()
+      }
+    }, speed)
+  })
+}
+
+// Watch for new messages and trigger typing animation
+watch(() => assistantMessage.value.length, async (newLength, oldLength) => {
+  if (newLength > oldLength && newLength > 0) {
+    const latestMessage = assistantMessage.value[assistantMessage.value.length - 1]
+    await typeText(latestMessage)
+  }
 })
 
-const uploadAndTranscribe = async () => {
-  loading.value = true
-  errorMsg.value = ''
-  transcript.value = ''
-  const url = await uploadToSupabase()
-  try {
-    // 1) Transcribe only
-    const tRes: any = await $fetch('/api/ai/transcribe', {
-      method: 'POST',
-      body: { audioUrl: url },
-    })
-    console.log('[client] /api/ai/transcribe response:', tRes)
-    transcript.value = tRes?.text ?? ''
-    if (transcript.value) messages.value.push({ role: 'user', content: transcript.value })
-
-    // 2) Merge into draft
-    const dRes: any = await $fetch('/api/ai/draft', {
-      method: 'POST',
-      body: { transcript: transcript.value, draftTask: draftTask.value },
-    })
-    console.log('[client] /api/ai/draft response:', dRes)
-    const ai = dRes?.ai || {}
-    aiMessage.value = ai.aiMessage || ''
-    missingFields.value = Array.isArray(ai.missingFields) ? ai.missingFields : []
-    if (ai.task && typeof ai.task === 'object') {
-      draftTask.value = {
-        name: ai.task.name || '',
-        due_date: ai.task.due_date || null,
-        description: ai.task.description || '',
-        subtasks: ai.task.subtasks || null
-      }
-    }
-    if (aiMessage.value) messages.value.push({ role: 'assistant', content: aiMessage.value })
-  } catch (e: any) {
-    errorMsg.value = e?.data?.statusMessage || e?.data?.message || e?.message || 'Failed to transcribe'
-  } finally {
-    loading.value = false
-    // Delete the uploaded audio file from Supabase after processing (cleanup)
-    try {
-      if (url) {
-        const parsed = new URL(url)
-        const bucketSegments = parsed.pathname.slice(1).split('/')
-        const bucketIndex = bucketSegments.indexOf('audio')
-        const filePath = bucketIndex >= 0 ? bucketSegments.slice(bucketIndex + 1).join('/') : ''
-        if (filePath) {
-          await supabase.storage.from('audio').remove([filePath])
-          console.log('Audio file deleted from Supabase' + filePath)
-        }
-      }
-    } catch (deleteErr) {
-      console.error('Supabase cleanup error:', deleteErr)
-    }
+// Get and store user ID on mount
+onMounted(async () => {
+  userCategories.value = await getUserCategories()
+  // Trigger initial message animation
+  if (assistantMessage.value.length > 0) {
+    await typeText(assistantMessage.value[0])
   }
+})
+
+async function handleUserAudio() {
+  const filePath = await uploadAudio()
+  if (filePath) {
+    const signedUrl = await getFileUrl(filePath)
+
+    const transcription = await transcribeAudio(signedUrl)
+    userTranscript.value.push(transcription)
+    
+    if (!transcription) {
+      errorMsg.value = 'Failed to transcribe audio.'
+      return
+    }
+
+  } else {
+    console.log('No file path returned from uploadAudio()')
+    return
+  }
+
+  assistantResponse.value = await getAssistantDraft(userTranscript.value, userTask.value, userCategories.value)
+  console.log('Assistant response: ', assistantResponse.value)
+
+  assistantDraft.value = assistantResponse.value.draftResponse.task
+  assistantMessage.value.push(assistantResponse.value.draftResponse.aiMessage)
+
+
+  userTask.name.value = assistantDraft.value.name || ''
+  userTask.description.value = assistantDraft.value.description || ''
+  userTask.category_id.value = assistantDraft.value.category || ''
+  userTask.due_date.value = assistantDraft.value.due_date || ''
+  userTask.due_time.value = assistantDraft.value.due_time || ''
+
+
+  return
 }
 
-const supportedType = () => {
-  // Prefer webm/opus; fallback to audio/webm; as last resort use default
+async function getUserCategories() {
+  const data = await $fetch('/api/categories', {
+    method: 'GET',
+  })
+  return data
+}
+
+function supportedType() {
+  // Prefer webm/opus; fallback to audio/webm
   const candidates = ['audio/webm;codecs=opus', 'audio/webm']
   for (const c of candidates) {
     if (MediaRecorder.isTypeSupported?.(c)) return c
@@ -101,390 +165,383 @@ const supportedType = () => {
   return ''
 }
 
-const startRecording = async () => {
+function startRecording() {
   errorMsg.value = ''
-  transcript.value = ''
-  try {
-    // Request mic access
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    mediaStream.value = stream
-    const type = supportedType()
-    const mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined)
-    chunks.length = 0
-    mr.ondataavailable = (e: BlobEvent) => {
-      if (e.data && e.data.size > 0) chunks.push(e.data)
-    }
-    mr.onstop = async () => {
-      const typeFinal = mr.mimeType || 'audio/webm'
-      audioBlob.value = new Blob(chunks, { type: typeFinal })
-      if (audioObjectUrl.value) URL.revokeObjectURL(audioObjectUrl.value)
-      audioObjectUrl.value = URL.createObjectURL(audioBlob.value)
-      // automatically upload and transcribe when recording stops
-      try {
-        await uploadAndTranscribe()
-      } catch (e) {
-        // uploadAndTranscribe already sets errorMsg; swallow here
+  
+  // Request mic access synchronously to maintain user gesture chain on iOS
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      mediaStream.value = stream
+      const type = supportedType()
+      const mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined)
+      chunks.length = 0
+      
+      mr.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data)
       }
-    }
-    mr.start()
-    recorder.value = mr
-    isRecording.value = true
-  } catch (e: any) {
-    errorMsg.value = e?.message || 'Microphone permission denied or unsupported browser.'
-  }
+      
+      mr.onstop = async () => {
+        const typeFinal = mr.mimeType || 'audio/webm'
+        audioBlob.value = new Blob(chunks, { type: typeFinal })
+      }
+      
+      mr.start()
+      recorder.value = mr
+      isRecording.value = true
+    })
+    .catch(e => {
+      errorMsg.value = e?.message || 'Microphone permission denied or unsupported browser.'
+      console.error('getUserMedia error:', e)
+    })
 }
 
-const stopRecording = () => {
+async function stopRecording() {
   if (!recorder.value) return
   recorder.value.stop()
   // Stop all tracks so the mic icon turns off
   mediaStream.value?.getTracks().forEach(t => t.stop())
   isRecording.value = false
+  
+  // Wait a moment for the blob to be ready, then handle upload
+  await new Promise(resolve => setTimeout(resolve, 100))
+  await handleUserAudio()
+  return
+}
+
+async function uploadAudio() {
+  if (!audioBlob.value) {
+    errorMsg.value = 'No audio recorded.'
+    return null
+  }
+
+  if (!userId.value) {
+    errorMsg.value = 'You must be logged in to upload.'
+    return null
+  }
+
+  try {
+    // Create file path
+    const fileExt = audioBlob.value.type.includes('webm') ? 'webm' : 'ogg'
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+    const fileName = `${timestamp}.${fileExt}`
+    const filePath = `${userId.value}/recordings/${fileName}`
+
+    // Upload to Supabase Storage
+    const { error: upErr } = await supabase.storage
+      .from('audio')
+      .upload(filePath, audioBlob.value, { contentType: audioBlob.value.type })
+    
+    if (upErr) throw new Error(upErr.message)
+
+    console.log('Audio uploaded successfully. filePath:', filePath)
+    return filePath
+  } catch (e) {
+    errorMsg.value = e?.message || 'Failed to upload audio'
+    console.error('Upload error:', e)
+    return null
+  }
+}
+
+async function getFileUrl(filePath){
+  if (!filePath) {
+    errorMsg.value = 'Missing file path.'
+    return null
+  }
+
+  if (!userId.value) {
+    errorMsg.value = 'User not logged in.'
+    return null
+  }
+
+  try {
+    // Create signed URL (valid for 15 minutes)
+    const { data: signed, error: signErr } = await supabase.storage
+      .from('audio')
+      .createSignedUrl(filePath, 60 * 15)
+    
+    if (signErr || !signed?.signedUrl) {
+      throw new Error(signErr?.message || 'Failed to create signed URL.')
+    }
+
+    console.log('Signed URL created:', signed.signedUrl)
+    return signed.signedUrl
+  } catch (e) {
+    errorMsg.value = e?.message || 'Failed to create signed URL'
+    console.error('Signed URL error:', e)
+    return null
+  }
+}
+
+async function transcribeAudio(url) {
+  const data = await $fetch('/api/ai/transcribe', {
+    method: 'POST',
+    body: {
+      audioUrl: url
+    },
+  })
+
+  console.log('fetch /api/ai/transcribe data: ', data)
+  return data || ''
+}
+
+async function getAssistantDraft(userTranscript, existingDraft, userCategories) {
+  const data = await $fetch('/api/ai/draft', {
+    method: 'POST',
+    body: {
+      transcript: userTranscript,
+      existingDraft: JSON.stringify(existingDraft),
+      userCategories: JSON.stringify(userCategories)
+    },
+  })
+
+  console.log('fetch /api/ai/draft data: ', data)
+  return data || ''
 }
 
 onBeforeUnmount(() => {
   try {
     if (recorder.value && recorder.value.state !== 'inactive') recorder.value.stop()
     mediaStream.value?.getTracks().forEach(t => t.stop())
-    if (audioObjectUrl.value) URL.revokeObjectURL(audioObjectUrl.value)
   } catch { }
 })
 
-const uploadToSupabase = async (): Promise<string> => {
-  if (!audioBlob.value) throw new Error('No audio recorded.')
-
-  // Always fetch a fresh user to ensure an id is present
-  const { data: { user }, error: userErr } = await supabase.auth.getUser()
-  if (userErr) throw userErr
-  if (!user) throw new Error('You must be logged in to upload.')
-
-  console.log('USER ID: ', user.id)
-
-  const fileExt = audioBlob.value.type.includes('webm') ? 'webm' : 'ogg'
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
-  const filePath = `${user.id}/recordings/${fileName}`
-  console.log('Uploading to:', filePath)
-
-  const { error: upErr } = await supabase.storage
-    .from('audio')
-    .upload(filePath, audioBlob.value, { contentType: audioBlob.value.type })
-  if (upErr) {
-    console.error('Upload error:', upErr)
-    throw new Error(upErr.message)
-  }
-
-  const { data: signed, error: signErr } = await supabase.storage
-    .from('audio')
-    .createSignedUrl(filePath, 60 * 15)
-  if (signErr || !signed?.signedUrl) throw new Error(signErr?.message || 'Failed to create signed URL.')
-
-  console.log('File uploaded and signed URL created:', signed.signedUrl)
-  return signed.signedUrl
-}
-
-const clearAll = () => {
-  try {
-    if (recorder.value && recorder.value.state !== 'inactive') recorder.value.stop()
-  } catch { }
-  audioBlob.value = null
-  if (audioObjectUrl.value) {
-    URL.revokeObjectURL(audioObjectUrl.value)
-    audioObjectUrl.value = null
-  }
-  transcript.value = ''
-  aiMessage.value = ''
-  missingFields.value = []
-  messages.value = [{ role: 'assistant', content: 'What can I help you with today?' }]
-  draftTask.value = { name: '', due_date: null, description: '', subtasks: null }
-  errorMsg.value = ''
-}
-
-async function createFromDraft() {
-  if (!draftTask.value.name) return
-  
-  // Convert subtasks to JSON strings for database storage
-  let subtasksForDb = null
-  if (draftTask.value.subtasks && draftTask.value.subtasks.length > 0) {
-    subtasksForDb = draftTask.value.subtasks.map(st => 
-      JSON.stringify({ text: st, done: false })
-    )
-  }
-  
-  const created = await createTask({
-    name: draftTask.value.name,
-    description: draftTask.value.description || null,
-    due_date: draftTask.value.due_date || null,
-    due_time: null,
-    subtasks: subtasksForDb
-  })
-  if (created && (created as any).id) {
-    // Optional reset and navigate
-    clearAll()
-    try { await router.push('/mytasks') } catch { }
-  }
-}
-
-// Chat container ref for auto-scrolling
-const chatContainer = ref<HTMLElement | null>(null)
-
-// Auto-scroll to bottom when new messages arrive
-watch([transcript, aiMessage, loading], () => {
-  nextTick(() => {
-    if (chatContainer.value) {
-      chatContainer.value.scrollTop = chatContainer.value.scrollHeight
-    }
-  })
-})
-
-// Scroll to bottom on mount
-onMounted(() => {
-  nextTick(() => {
-    if (chatContainer.value) {
-      chatContainer.value.scrollTop = chatContainer.value.scrollHeight
-    }
-  })
-})
-
-function formatDate(dateString: string | null) {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  if (isNaN(date.getTime())) return ''
-  return date.toLocaleDateString('de-CH', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
-}
 </script>
 
 <template>
-  <!-- Back to My Tasks button -->
-  <div class="fixed top-5 right-5 z-[100]">
-    <NuxtLink
-      to="/mytasks"
-      class="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 rounded-lg shadow border border-gray-200 transition-colors"
+  <div class="w-full h-[90dvh] flex flex-col justify-between items-center" >
+    <!-- User Task -->
+    <Transition
+      enter-active-class="transition-all duration-500 ease-out"
+      enter-from-class="opacity-0 -translate-y-4"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition-all duration-300 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 -translate-y-4"
     >
-      <span class="font-medium">My Tasks</span>
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-      </svg>
-    </NuxtLink>
-  </div>
+      <div v-if="userTask.name.value" class="sticky top-0 z-30 w-full h-full  flex justify-center items-start px-4 pt-4">
+        <div class="w-full max-w-[500px] flex flex-col justify-start items-start bg-bg-surface p-[11px] rounded-[21px] gap-4">
+          <div class="w-full flex flex-row justify-between items-center">
+          <div>
+            <select v-model="userTask.category_id.value" class="w-full h-[40px] rounded-lg bg-transparent ">
+              <option value="" disabled selected>Kategorie</option>
+              <option v-for="category in userCategories" :key="category.id" :value="category.name">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+          
+          <!-- Custom Date/Time Display Button -->
+          <div class="relative">
+            <button 
+              type="button"
+              @click="dateTimePickerOpen = !dateTimePickerOpen"
+              class="h-[40px] px-4 rounded-lg bg-white border border-gray-300 hover:border-gray-400 transition-colors flex items-center gap-2"
+            >
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm">
+                {{ formatDateTime() }}
+              </span>
+            </button>
 
-  <!-- Draft Task Card - outside chat, fixed position -->
-  <transition name="chat-slide-left">
-    <div class="fixed top-20 left-1/2 -translate-x-1/2 z-[95] w-[320px]">
-      <div 
-      class="bg-blue-100 border-2 border-blue-200 w-[320px] h-[480px] flex flex-col justify-between px-[12px] py-[35px] rounded-lg shadow-lg"
-      >
-      <!-- Title -->
-      <div class="w-full">
-        <h3 class="text-xl font-bold mb-2 text-center text-black">
-        {{ draftTask.name || 'Untitled Task' }}
-        </h3>
-      </div>
+            <!-- Date/Time Picker Dropdown -->
+            <div 
+              v-if="dateTimePickerOpen"
+              class="absolute right-0 mt-2 bg-white rounded-xl p-4 shadow-lg border border-gray-200 z-50 w-[320px]"
+            >
+              <!-- Month/Year Selector -->
+              <div class="flex justify-between items-center mb-3">
+                <button @click="selectedMonth = selectedMonth === 0 ? 11 : selectedMonth - 1" class="p-1 hover:bg-gray-100 rounded">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div class="font-semibold text-gray-900">
+                  {{ monthNames[selectedMonth] }} {{ selectedYear }}
+                </div>
+                <button @click="selectedMonth = selectedMonth === 11 ? 0 : selectedMonth + 1" class="p-1 hover:bg-gray-100 rounded">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
 
-      <!-- Description -->
-      <div class="flex-1 overflow-auto">
-        <span v-if="draftTask.description" class="text-sm text-black">
-        {{ draftTask.description }}
-        </span>
-        <span v-else class="text-sm text-gray-400 italic">
-        No description yet
-        </span>
-      </div>
+              <!-- Calendar Grid -->
+              <div class="grid grid-cols-7 gap-1 mb-4">
+                <!-- Day headers -->
+                <div v-for="day in ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']" :key="day" 
+                     class="text-center text-xs font-medium text-gray-500 py-1">
+                  {{ day }}
+                </div>
+                
+                <!-- Empty cells for first day offset -->
+                <div v-for="i in getFirstDayOfMonth(selectedYear, selectedMonth)" :key="'empty-' + i"></div>
+                
+                <!-- Day cells -->
+                <button
+                  v-for="day in getDaysInMonth(selectedYear, selectedMonth)"
+                  :key="day"
+                  @click="selectedDay = day"
+                  :class="[
+                    'aspect-square rounded-lg text-sm transition-colors',
+                    selectedDay === day 
+                      ? 'bg-orange-500 text-white font-semibold' 
+                      : 'hover:bg-gray-100 text-gray-700'
+                  ]"
+                >
+                  {{ day }}
+                </button>
+              </div>
 
-      <!-- Subtasks -->
-      <div v-if="draftTask.subtasks && draftTask.subtasks.length > 0" class="w-full space-y-1 mb-4">
-        <div 
-        v-for="(subtask, index) in draftTask.subtasks" 
-        :key="index"
-        class="flex items-start gap-2"
-        >
-        <div class="w-3 h-3 mt-0.5 rounded-sm border-2 border-gray-400"></div>
-        <span class="text-xs text-black">
-          {{ subtask }}
-        </span>
-        </div>
-      </div>
+              <!-- Time Selector -->
+              <div class="border-t pt-3 mb-3">
+                <div class="flex items-center justify-center gap-2">
+                  <div class="flex flex-col items-center">
+                    <button @click="selectedHour = selectedHour === 23 ? 0 : selectedHour + 1" 
+                            class="p-1 hover:bg-gray-100 rounded">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                      </svg>
+                    </button>
+                    <div class="text-2xl font-semibold w-12 text-center">
+                      {{ String(selectedHour).padStart(2, '0') }}
+                    </div>
+                    <button @click="selectedHour = selectedHour === 0 ? 23 : selectedHour - 1" 
+                            class="p-1 hover:bg-gray-100 rounded">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <span class="text-2xl font-semibold">:</span>
+                  
+                  <div class="flex flex-col items-center">
+                    <button @click="selectedMinute = selectedMinute === 59 ? 0 : selectedMinute + 1" 
+                            class="p-1 hover:bg-gray-100 rounded">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                      </svg>
+                    </button>
+                    <div class="text-2xl font-semibold w-12 text-center">
+                      {{ String(selectedMinute).padStart(2, '0') }}
+                    </div>
+                    <button @click="selectedMinute = selectedMinute === 0 ? 59 : selectedMinute - 1" 
+                            class="p-1 hover:bg-gray-100 rounded">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-      <!-- Bottom section with date and missing fields -->
-      <div>
-        <div v-if="draftTask.due_date" class="mb-2">
-        <span class="text-sm text-black">
-          {{ formatDate(draftTask.due_date) }}
-        </span>
-        </div>
+              <!-- Apply Button -->
+              <button 
+                @click="applyDateTime"
+                class="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 rounded-lg transition-colors"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
 
-        <div v-if="missingFields.length" class="mb-4">
-        <div class="text-xs text-gray-600 bg-white/50 rounded-lg px-3 py-2">
-          <span class="font-medium">Missing:</span>
-          <span> {{ missingFields.join(', ') }}</span>
-        </div>
-        </div>
-      </div>
-
-      </div>
-    </div>
-  </transition>
-
-
-
-  <!-- "Chat" window - directly on page, no wrapper -->
-  <div ref="chatContainer" class="fixed bottom-20 flex-1 w-screen h-[250px] p-6 pb-32 overflow-y-auto flex flex-col gap-4">
-    <!-- Conversation -->
-    <div v-for="(m, idx) in messages" :key="idx">
-      <transition :name="m.role === 'assistant' ? 'chat-slide-left' : 'chat-slide-right'">
-        <div :class="m.role === 'assistant' ? 'flex' : 'flex justify-end'">
-          <div class="flex items-end gap-2">
-            <template v-if="m.role === 'assistant'">
-              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
-                AI</div>
-              <div
-                class="bg-blue-50 text-gray-900 p-4 rounded-2xl rounded-bl-lg max-w-xs shadow text-sm whitespace-pre-wrap">
-                {{ m.content }}</div>
-            </template>
-            <template v-else>
-              <div class="bg-green-100 text-gray-800 p-4 rounded-2xl rounded-br-lg max-w-xs shadow text-sm">{{ m.content
-                }}</div>
-              <div
-                class="w-10 h-10 bg-green-200 rounded-full flex items-center justify-center font-bold text-green-700">
-                You</div>
-            </template>
+          </div>
+        
+          <div class="w-full">
+            <input 
+              type="text" 
+              v-model="userTask.name.value" 
+              placeholder="Name" 
+              class="w-full px-4 py-3 text-2xl font-bold bg-transparent border-none outline-none placeholder-gray-400"
+              style="font-family: 'Baloo Chettan 2', sans-serif;"
+            /> 
+          </div>
+          <div class="w-full">
+            <textarea 
+              v-model="userTask.description.value" 
+              placeholder="Description" 
+              rows="4"
+              class="w-full px-4 py-3 text-base bg-transparent border-none outline-none resize-none placeholder-gray-400"
+              style="font-family: 'Roboto', sans-serif;"
+            />
           </div>
         </div>
-      </transition>
+      </div>
+    </Transition>
+
+
+    <div v-if="!userTask.name.value" class="">
+        <div class="max-w-[500px] max-h-[50vh]">
+          <Lottie 
+            name="playing-cards"
+            :autoplay="true"
+            :loop="false"
+            :speed="1.5"
+            :pause-animation="false"
+            :play-on-hover="false"
+            width="100%"
+            height="100%"
+            :direction="1"
+            @complete=""
+          />
+        </div>
     </div>
 
-    <!-- (Draft card moved outside chat) -->
-
-    <!-- Loading indicator (when uploading/transcribing) -->
-    <transition name="fade">
-      <div v-if="loading" class="flex justify-center py-2">
-        <svg class="animate-spin h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-          </path>
-        </svg>
-      </div>
-    </transition>
-
-    <!-- Error (if any) -->
-    <transition name="fade">
-      <div v-if="errorMsg" class="flex justify-center">
-        <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm text-red-600 max-w-sm w-full">
+    <!-- AI Assistant Message -->
+    <div class="w-full h-full overflow-hidden overflow-y-auto flex justify-center items-start px-4 pb-4">
+      <div class="w-full max-w-[500px] flex flex-col items-center gap-4">
+        <!-- Error message -->
+        <div v-if="errorMsg" class="w-full bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg">
           {{ errorMsg }}
         </div>
+
+        <!-- Message -->
+        <Transition
+          enter-active-class="transition-all duration-300 ease-out"
+          enter-from-class="opacity-0 -translate-y-4"
+          enter-to-class="opacity-100 translate-y-0"
+        >            
+          <div v-if="assistantMessage.length > 0" class="w-full flex flex-col bg-white rounded-2xl px-4 py-4 border border-bg-surface items-center text-left gap-4">
+            
+            <div class="w-15 h-15">
+              <Lottie name="Eyes" :pause-animation="!isRecording && !isTyping" height="100%" :speed="1"/>
+            </div>
+            
+            <div class="w-full">
+              <p class="text-gray-800 text-lg" style="font-family: 'Roboto', sans-serif;">
+                {{ displayedText }}
+                <span v-if="isTyping" class="inline-block w-0.5 h-4 bg-gray-800 ml-0.5 animate-pulse"></span>
+              </p>   
+            </div>
+          
+          </div>
+        </Transition>
+
       </div>
-    </transition>
+    </div>
+    <!-- Recording button -->
   </div>
-
-
-
-
-  <!-- Confirm/Create button -->
-  <div class="fixed bottom-5 right-5 h-16 z-[100]">
-    <button @click="createFromDraft" :hidden="creatingTask || !draftTask.name"
-      class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed">
-      {{ creatingTask ? 'Creating…' : (draftTask.name ? 'Create Task' : 'Set task details to enable') }}
-    </button>
-  </div>
-
-  <!-- Recording mic button - absolute on page -->
-  <div class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[100]">
-    <button @click="isRecording ? stopRecording() : startRecording()" :disabled="loading" :class="[
-      'flex items-center justify-center w-16 h-16 text-white font-medium rounded-full transition-colors shadow disabled:opacity-50 disabled:cursor-not-allowed',
-      isRecording ? 'bg-red-600 hover:bg-red-700 animate-pulse' : 'bg-green-600 hover:bg-green-700'
-    ]">
-      <template v-if="!isRecording">
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-          <path
-            d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-        </svg>
-      </template>
-      <template v-else>
-        <div class="w-3 h-3 bg-white rounded-full"></div>
-      </template>
-    </button>
+  <div class="w-full h-[10dvh] fixed bottom-[env(safe-area-inset-bottom,0px)] flex justify-center items-center p-4">
+    <div class="w-full h-full flex justify-center items-center p-4">
+      <button 
+        @click="isRecording ? stopRecording() : startRecording()"
+        :class="[
+          'flex items-center justify-center w-16 h-16 text-white font-medium rounded-full transition-colors ',
+          isRecording ? 'bg-accent hover:bg-accent-hover animate-pulse' : 'bg-bg-surface hover:bg-bg-surface-hover'
+        ]"
+      >
+        <template v-if="!isRecording">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+          </svg>
+        </template>
+        <template v-else>
+          <div class="w-3 h-3 bg-white rounded-full"></div>
+        </template>
+      </button>
+    </div>
   </div>
 </template>
-
-<style scoped>
-/* Chat message fade-in up from bottom */
-.chat-fade-up-enter-active,
-.chat-fade-up-leave-active {
-  transition: opacity 0.4s, transform 0.5s cubic-bezier(.32, 1.11, .29, 1);
-}
-
-.chat-fade-up-enter-from,
-.chat-fade-up-leave-to {
-  opacity: 0;
-  transform: translateY(30px);
-}
-
-.chat-fade-up-enter-to,
-.chat-fade-up-leave-from {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Right-to-left for user message - slides up from bottom */
-.chat-slide-right-enter-active,
-.chat-slide-right-leave-active {
-  transition: opacity 0.45s, transform 0.45s cubic-bezier(.32, 1.11, .29, 1);
-}
-
-.chat-slide-right-enter-from,
-.chat-slide-right-leave-to {
-  opacity: 0;
-  transform: translateY(30px) translateX(20px);
-}
-
-.chat-slide-right-enter-to,
-.chat-slide-right-leave-from {
-  opacity: 1;
-  transform: translateY(0) translateX(0);
-}
-
-/* Left-to-right for ai message - slides up from bottom */
-.chat-slide-left-enter-active,
-.chat-slide-left-leave-active {
-  transition: opacity 0.45s, transform 0.45s cubic-bezier(.32, 1.11, .29, 1);
-}
-
-.chat-slide-left-enter-from,
-.chat-slide-left-leave-to {
-  opacity: 0;
-  transform: translateY(30px) translateX(-20px);
-}
-
-.chat-slide-left-enter-to,
-.chat-slide-left-leave-from {
-  opacity: 1;
-  transform: translateY(0) translateX(0);
-}
-
-/* Simple fade-in-out for errors/loading/clear */
-.fade-enter-active,
-.fade-leave-active,
-.mic-fade-enter-active,
-.mic-fade-leave-active {
-  transition: opacity 0.3s;
-}
-
-.fade-enter-from,
-.fade-leave-to,
-.mic-fade-enter-from,
-.mic-fade-leave-to {
-  opacity: 0;
-}
-
-.fade-enter-to,
-.fade-leave-from,
-.mic-fade-enter-to,
-.mic-fade-leave-from {
-  opacity: 1;
-}
-</style>
