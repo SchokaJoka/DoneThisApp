@@ -1,30 +1,21 @@
 <template>
-  <div class="p-4 h-[10vh]">
-    <div class="flex items-center justify-between mb-4">
-      <div class="flex flex-col">
-        <h1 class="text-2xl font-bold">My Tasks</h1>
-        <p class="text-sm">Single test task</p>
+  <div class="pt-8 px-8 h-[10dvh] flex items-center justify-center">
+    <div class="w-full max-w-[400px] flex items-center justify-between mb-4">
+      <div class="w-full flex flex-col">
+        <h1 class="text-2xl font-bold text-center">My Tasks</h1>
+
       </div>
       <div class="pr-4">
-        <NuxtLink
-          to="/taskcreator"
-          aria-label="Create task"
-          class="bg-orange-500 hover:bg-orange-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-          </svg>
-        </NuxtLink>
       </div>
     </div>
   </div>
 
-  <div class="h-[90vh] p-4">
-    <div ref="scrollContainer" class="h-[150vh] p-4 w-full scroll-smooth snap-y snap-mandatory">
+  <div class="p-8 h-[90dvh] overflow-x-hidden overflow-y-scroll">
+    <div class="w-full flex flex-col gap-8">
       <div
         v-for="task in tasks"
         :key="task.id"
-        class="snap-start snap-always h-[75vh] w-full top-16 flex flex-col items-center"
+        class="w-full min-h-[70dvh] flex justify-center items-center"
       >
         <TaskCard
           :task="task"
@@ -34,8 +25,9 @@
           @save="handleSave"
         />
       </div>
-      <div class="snap-start snap-always h-[75vh] w-full sticky top-16 flex flex-col items-center"/>
+
     </div>
+    <div class="snap-start snap-always h-[75vh] w-full sticky top-16 flex flex-col items-center"/>
   </div>
   <TaskEditOverlay v-if="editingTaskId" :task-id="editingTaskId" @close="closeEditor" />
 
@@ -45,10 +37,14 @@
 const editingTaskId = ref(null)
 const scrollContainer = ref(null)
 
-const { loading, error, tasks, getTasks, deleteTask, updateTask } = useTasks()
+const { loadingTask, errorTask, tasks, getTasks, deleteTask, updateTask } = useTasks()
+const { loadingCat, errorCat, categories, categoryName, categoryImgSrc, getCategoryName, getCategoryImgSrc, getCategoryNames } = useCategories()
 
 onMounted(async () => {
   await getTasks()
+  await getCategoryNames()
+
+  console.log("CategoryNames: ", categories.value)
   // Ensure scroll starts at top instantly
   await nextTick()
   if (scrollContainer.value) {

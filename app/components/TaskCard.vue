@@ -1,89 +1,42 @@
 <template>
-    <div class="w-full h-[60vh] perspective-1000">
+    <div class="w-full h-full perspective-1000 flex justify-center items-center">
         <div 
-            class="relative w-full h-full transition-transform duration-700 transform-style-3d"
+            class="w-full h-full transition-transform duration-700 transform-style-3d flex justify-center items-center"
             :style="{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }"
         >
             <!-- Front of card -->
-            <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start bg-[url(assets/img/bg-card/yellow-circle.png)] bg-cover p-[11px] rounded-[21px]" :class="colorClass" :style="{ transform: `rotate(${rotation}deg)` }">
-        
-                <div class="w-full flex flex-col items-start gap-[11px]">
-                    <div class="w-full flex h-[40px] justify-between self-stretch ">
-                        <button class="flex px-[17px] justify-center items-center rounded-[10px] bg-orange-100">
-                            <span class="text-md font-[600] text-orange-500">
-                                Kategorie
+            <div class="w-full h-full min-h-[70dvh] max-w-[400px] inset-0 backface-hidden flex flex-col justify-between items-start bg-cover bg-center p-[15px] rounded-[25px] gap-4 bg-bg-surface" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
+
+                <div class="w-full flex flex-col items-start gap-8">
+                    <div class="w-full flex h-10 justify-between self-stretch ">
+                        <div class="flex justify-center items-center">
+                            <span class="text-md font-semibold text-text-primary">
+                                {{ categoryName || '' }}
                             </span>
-                        </button>
-                        <button v-if="task.due_date" class="flex px-[17px] justify-center items-center rounded-[10px] bg-orange-100 gap-[4px]">
-                            <div class="size-[24px]">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <g clip-path="url(#clip0_2249_2344)">
-                                        <path d="M5 13C5 13.9193 5.18106 14.8295 5.53284 15.6788C5.88463 16.5281 6.40024 17.2997 7.05025 17.9497C7.70026 18.5998 8.47194 19.1154 9.32122 19.4672C10.1705 19.8189 11.0807 20 12 20C12.9193 20 13.8295 19.8189 14.6788 19.4672C15.5281 19.1154 16.2997 18.5998 16.9497 17.9497C17.5998 17.2997 18.1154 16.5281 18.4672 15.6788C18.8189 14.8295 19 13.9193 19 13C19 12.0807 18.8189 11.1705 18.4672 10.3212C18.1154 9.47194 17.5998 8.70026 16.9497 8.05025C16.2997 7.40024 15.5281 6.88463 14.6788 6.53284C13.8295 6.18106 12.9193 6 12 6C11.0807 6 10.1705 6.18106 9.32122 6.53284C8.47194 6.88463 7.70026 7.40024 7.05025 8.05025C6.40024 8.70026 5.88463 9.47194 5.53284 10.3212C5.18106 11.1705 5 12.0807 5 13Z" stroke="#F72900" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M12 10V13H14" stroke="#F72900" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M7 4L4.25 6" stroke="#F72900" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M17 4L19.75 6" stroke="#F72900" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </g>
-                                    <defs>
-                                        <clipPath id="clip0_2249_2344">
-                                            <rect width="24" height="24" fill="white"/>
-                                        </clipPath>
-                                    </defs>
-                                </svg>
-                            </div>
-                            <span class="text-md font-[600] font-display text-red-600">
+                        </div>
+                        <div v-if="task.due_date" class="flex justify-center items-center gap-1">
+                            <span class="text-md font-semibold text-text-primary">
                                 {{ formatDate(task.due_date) }}
                                 <span v-if="task.due_time"> {{ task.due_time }}</span>
                             </span>
-                        </button>
-                    </div>
-                    <div class="w-full">
-                        <h1 class="text-[24px] font-[500] text-left">
-                        {{ task.name || 'Untitled Task' }}
-                        </h1>
-                    </div>
-                    <div class="w-full">
-                        <p class="text-[20px] font-[300] text-left">
-                        {{ task.description  || 'No description provided' }}
-                        </p>
-                    </div>
-                </div>
-                <div class="w-full">
-                    <div v-if="parsedSubtasks.length > 0" class="w-full space-y-1">
-                        <div v-for="(subtask, index) in parsedSubtasks" 
-                             :key="index"
-                             class="w-full px-[17px] py-[11px] bg-orange-100 rounded-[10px] flex items-start gap-2"
-                        >
-                            <label
-                                :for="`subtask-${task.id}-${index}`"
-                                class="flex items-center gap-3 w-full cursor-pointer rounded-md transition-colors focus-within:ring-2 focus-within:ring-orange-300"
-                            >
-                                <input
-                                    type="checkbox"
-                                    :id="`subtask-${task.id}-${index}`"
-                                    class="sr-only"
-                                    :checked="subtask.done"
-                                    @change="toggleSubtask(index)"
-                                />
-                                <span
-                                    class="w-5 h-5 flex items-center justify-center rounded-md border-2 transition-all"
-                                    :class="subtask.done
-                                        ? 'bg-orange-500 border-orange-500'
-                                        : 'bg-white border-gray-300'"
-                                    aria-hidden="true"
-                                >
-                                    <svg v-if="subtask.done" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8.5 12.086 4.707 8.293a1 1 0 10-1.414 1.414l4.5 4.5a1 1 0 001.414 0l7.5-7.5a1 1 0 000-1.414z" clip-rule="evenodd" />
-                                    </svg>
-                                </span>
-                                <span class="text-sm flex-1" :class="{ 'line-through opacity-60': subtask.done }">
-                                    {{ subtask.text }}
-                                </span>
-                            </label>
                         </div>
-                    </div>  
+                    </div>
+                    <div class="w-full flex flex-col gap-4">
+                        <div class="w-full">
+                            <h1 class="text-4xl font-medium text-left">
+                            {{ task.name || 'Untitled Task' }}
+                            </h1>
+                        </div>
+                        <div class="w-full">
+                            <p class="text-[20px] font-light text-left">
+                            {{ task.description  || 'No description provided' }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="w-full flex justify-center gap-[7px]">
-                    <button @click.stop="isFlipped = true" class="flex px-[17px] py-[11px] bg-orange-100 rounded-[10px]">
+                    <button @click.stop="isFlipped = true" class="flex px-[17px] py-[11px] bg-bg rounded-[10px]">
                         <div class="size-[24px] flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                 <g clip-path="url(#clip0_2249_2354)">
@@ -99,14 +52,14 @@
                             </svg>
                         </div>
                     </button>
-                    <button @click="$emit('delete', task.id)" class="flex px-[17px] py-[11px] bg-orange-100 rounded-[10px]">
+                    <button @click="$emit('delete', task.id)" class="flex px-[17px] py-[11px] bg-bg rounded-[10px]">
                         <div class="size-[24px] flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke="#FF8B0A" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                         </div>
                     </button>
-                    <button class="flex px-[17px] py-[11px] bg-orange-100 rounded-[10px]">
+                    <button class="flex px-[17px] py-[11px] bg-bg rounded-[10px]">
                         <div class="size-[24px] flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                 <g clip-path="url(#clip0_2249_2379)">
@@ -120,7 +73,7 @@
                             </svg>
                         </div>
                     </button>
-                    <button class="flex w-full justify-center items-center self-stretch py-[11px] bg-orange-100 rounded-[10px]">
+                    <button class="flex w-full justify-center items-center self-stretch py-[11px] bg-bg rounded-[10px]">
                         <div class="size-[24px] flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                 <g clip-path="url(#clip0_2249_2374)">
@@ -138,7 +91,7 @@
                 </div>
             </div>
 
-            <!-- Back of card (Edit form) -->
+            <!-- Back of card (Edit form)
             <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start bg-orange-50 p-[11px] rounded-[21px]" style="transform: rotateY(180deg)">
                 <div class="w-full h-full overflow-y-auto space-y-4 pb-4">
                     <h2 class="text-xl font-semibold mb-4">Edit Task</h2>
@@ -208,13 +161,13 @@
                         Save
                     </button>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+const { loadingCat, errorCat, categoryName, categoryImgSrc, getCategoryName, getCategoryImgSrc, getCategories } = useCategories()
 
 const props = defineProps({
     task: {
@@ -232,6 +185,18 @@ const props = defineProps({
     maxRotation: {
         type: Number,
         default: 6
+    }
+})
+
+// Computed property to get the background image URL
+const backgroundImageUrl = computed(() => {
+    if (!categoryImgSrc.value) return ''
+    try {
+        // Use new URL with import.meta.url to properly resolve the asset path
+        return new URL(`../assets/img/bg-card/${categoryImgSrc.value}.png`, import.meta.url).href
+    } catch (e) {
+        console.error('Error loading background image:', e)
+        return ''
     }
 })
 
@@ -311,7 +276,7 @@ function saveEdit() {
     isFlipped.value = false
 }
 
-onMounted(() => {
+onMounted(async () => {
     if (props.enableRotation) {
         const t = Math.random()
         rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
@@ -320,6 +285,9 @@ onMounted(() => {
     colorClass.value = choice.card
     buttonClass.value = choice.button
     
+    await getCategoryImgSrc(props.task.category_id)
+    await getCategoryName(props.task.category_id)
+
     editForm.value = {
         name: props.task.name || '',
         description: props.task.description || '',

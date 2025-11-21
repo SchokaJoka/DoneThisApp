@@ -16,15 +16,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
   }
 
+  const { categoryId } = event.context.params || {}
+  if  (!categoryId) throw createError({ statusCode: 400, statusMessage: 'categoryId is required' })
+
   const { data, error } = await client
     .from('categories')
     .select('name, color, id, src')
     .eq('user_id', verifiedUser.id)
+    .eq('id', categoryId)
+    .single()
 
   if (error) {
-    console.error('[api/tasks.[id].get] supabase error:', error)
+    console.error('[api/categories.[id].get] supabase error:', error)
     // If row not found supabase returns 406? but standardize to 404
-    throw createError({ statusCode: 404, statusMessage: 'Task not found' })
+    throw createError({ statusCode: 404, statusMessage: 'Category not found' })
   }
 
   // if (data.user_id !== verifiedUser.id) {

@@ -503,7 +503,7 @@ onBeforeUnmount(() => {
           enter-from-class="opacity-0 -translate-y-4"
           enter-to-class="opacity-100 translate-y-0"
         >            
-          <div v-if="assistantMessage.length > 0" class="w-full flex flex-col bg-white rounded-2xl px-4 py-4 border border-bg-surface items-center text-left gap-4">
+          <div v-if="assistantMessage.length > 0" class="w-full flex flex-col rounded-2xl px-4 py-4 items-center text-left gap-4">
             
             <div class="w-15 h-15">
               <Lottie name="Eyes" :pause-animation="!isRecording && !isTyping" height="100%" :speed="1"/>
@@ -524,7 +524,7 @@ onBeforeUnmount(() => {
     <!-- Recording button -->
   </div>
   <div class="w-full h-[10dvh] fixed bottom-[env(safe-area-inset-bottom,0px)] flex justify-center items-center p-4">
-    <div class="w-full h-full flex justify-center items-center p-4">
+    <div class="w-full h-full flex justify-center items-center mb-8 p-4">
       <button 
         @click="isRecording ? stopRecording() : startRecording()"
         :class="[
