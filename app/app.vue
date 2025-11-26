@@ -1,5 +1,5 @@
 <template>
-  <div class="h-dvh w-dvw bg-bg">
+  <div class="l-svh w-lvw bg-bg">
     <NuxtPage/>
     <Navigation />
   </div>

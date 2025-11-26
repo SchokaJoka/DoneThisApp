@@ -91,7 +91,7 @@
                 </div>
             </div>
 
-            <!-- Back of card (Edit form)
+            <!-- Back of card (Edit form) -->
             <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start bg-orange-50 p-[11px] rounded-[21px]" style="transform: rotateY(180deg)">
                 <div class="w-full h-full overflow-y-auto space-y-4 pb-4">
                     <h2 class="text-xl font-semibold mb-4">Edit Task</h2>
@@ -161,13 +161,14 @@
                         Save
                     </button>
                 </div>
-            </div> -->
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
 const { loadingCat, errorCat, categoryName, categoryImgSrc, getCategoryName, getCategoryImgSrc, getCategories } = useCategories()
+const { loadingGroups, errorGroups, group, groups, getGroups, getGroup} = useGroups()
 
 const props = defineProps({
     task: {
@@ -188,19 +189,36 @@ const props = defineProps({
     }
 })
 
+onMounted(async () => {
+    if (props.enableRotation) {
+        const t = Math.random()
+        rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
+    }
+
+    await getCategoryImgSrc(props.task.category_id)
+    await getCategoryName(props.task.category_id)
+    await getGroup(props.task.group_id)
+    editForm.value = {
+        name: props.task.name || '',
+        description: props.task.description || '',
+        due_date: props.task.due_date || '',
+        due_time: props.task.due_time || '',
+    }
+})
+
 // Computed property to get the background image URL
 const backgroundImageUrl = computed(() => {
     if (!categoryImgSrc.value) return ''
     try {
         // Use new URL with import.meta.url to properly resolve the asset path
-        return new URL(`../assets/img/bg-card/${categoryImgSrc.value}.png`, import.meta.url).href
+        return new URL(`../assets/img/bg-card/${group.value.id}/${categoryImgSrc.value}.png`, import.meta.url).href
     } catch (e) {
         console.error('Error loading background image:', e)
         return ''
     }
 })
 
-const emit = defineEmits(['subtask-toggle', 'delete', 'save'])
+const emit = defineEmits(['delete', 'save'])
 
 const rotation = ref(0)
 const isFlipped = ref(false)
@@ -211,43 +229,6 @@ const editForm = ref({
     due_time: '',
     subtasks: []
 })
-
-const colorOptions = [
-    { card: 'bg-blue-100 border-blue-200 text-black', button: 'bg-blue-300 text-black' },
-    { card: 'bg-red-100 border-red-200 text-black', button: 'bg-green-300 text-black' },
-    { card: 'bg-yellow-100 border-yellow-200 text-black', button: 'bg-yellow-300 text-black' }
-]
-const colorClass = ref(colorOptions[0].card)
-const buttonClass = ref(colorOptions[0].button)
-
-const parsedSubtasks = computed(() => {
-    if (!props.task.subtasks || !Array.isArray(props.task.subtasks)) {
-        return []
-    }
-    
-    return props.task.subtasks.map(item => {
-        try {
-            if (typeof item === 'string') {
-                return JSON.parse(item)
-            }
-            return item
-        } catch {
-            return { text: item, done: false }
-        }
-    })
-})
-
-function toggleSubtask(index) {
-    emit('subtask-toggle', { taskId: props.task.id, subtaskIndex: index })
-}
-
-function addSubtask() {
-    editForm.value.subtasks.push({ text: '', done: false })
-}
-
-function removeSubtask(index) {
-    editForm.value.subtasks.splice(index, 1)
-}
 
 function cancelEdit() {
     isFlipped.value = false
@@ -268,34 +249,10 @@ function saveEdit() {
             description: editForm.value.description,
             due_date: editForm.value.due_date || null,
             due_time: editForm.value.due_time || null,
-            subtasks: editForm.value.subtasks
-                .filter(st => st.text.trim() !== '')
-                .map(st => JSON.stringify(st))
         }
     })
     isFlipped.value = false
 }
-
-onMounted(async () => {
-    if (props.enableRotation) {
-        const t = Math.random()
-        rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
-    }
-    const choice = colorOptions[Math.floor(Math.random() * colorOptions.length)]
-    colorClass.value = choice.card
-    buttonClass.value = choice.button
-    
-    await getCategoryImgSrc(props.task.category_id)
-    await getCategoryName(props.task.category_id)
-
-    editForm.value = {
-        name: props.task.name || '',
-        description: props.task.description || '',
-        due_date: props.task.due_date || '',
-        due_time: props.task.due_time || '',
-        subtasks: parsedSubtasks.value.map(st => ({ ...st }))
-    }
-})
 
 function formatDate(dateString) {
     if (!dateString) return ''
@@ -311,7 +268,7 @@ function formatDate(dateString) {
 
 <style scoped>
 .perspective-1000 {
-    perspective: 1000px;
+    perspective: 10000px;
 }
 
 .transform-style-3d {

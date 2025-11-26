@@ -18,18 +18,14 @@ export default defineEventHandler(async (event) => {
 
   const { data, error } = await client
     .from('categories')
-    .select('name, color, id, src')
+    .select('*')
     .eq('user_id', verifiedUser.id)
 
   if (error) {
-    console.error('[api/tasks.[id].get] supabase error:', error)
+    console.error('[api/categories.[id].get] supabase error:', error)
     // If row not found supabase returns 406? but standardize to 404
     throw createError({ statusCode: 404, statusMessage: 'Task not found' })
   }
-
-  // if (data.user_id !== verifiedUser.id) {
-  //   throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
-  // }
 
   return data
 })

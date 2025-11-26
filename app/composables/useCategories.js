@@ -6,13 +6,12 @@ export function useCategories() {
   const categoryName = ref('')
   const categoryImgSrc = ref('')
   
-  async function getCategoryNames() {
+  async function getCategories() {
     error.value = null
     loading.value = true
 
     const response = await $fetch('/api/categories', { method: 'GET' })
     categories.value = response
-    categories.value = response.map(category => category.name)
 
     loading.value = false
   }
@@ -93,5 +92,5 @@ export function useCategories() {
   //   loading.value = false
   // }
   
-  return { loading, error, categoryName: categoryName, categoryImgSrc: categoryImgSrc, categories: categories, getCategoryNames: getCategoryNames, getCategoryName, getCategoryImgSrc}
+  return { loading, error, categoryName, categoryImgSrc, categories, getCategories, getCategoryName, getCategoryImgSrc}
 }
