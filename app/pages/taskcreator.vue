@@ -483,8 +483,7 @@ onBeforeUnmount(() => {
             :play-on-hover="false"
             width="100%"
             height="100%"
-            :direction="1"
-            @complete=""
+            direction="1"
           />
         </div>
     </div>

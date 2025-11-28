@@ -11,7 +11,7 @@
                     <div class="w-full flex h-10 justify-between self-stretch ">
                         <div class="flex justify-center items-center">
                             <span class="text-md font-semibold text-text-primary">
-                                {{ categoryName || '' }}
+                                {{ userCategory || '' }}
                             </span>
                         </div>
                         <div v-if="task.due_date" class="flex justify-center items-center gap-1">
@@ -167,7 +167,8 @@
 </template>
 
 <script setup>
-const { loadingCat, errorCat, categoryName, categoryImgSrc, getCategoryName, getCategoryImgSrc, getCategories } = useCategories()
+const { loadingCat, errorCat, categories, category, getCategories, getCategory } = useCategories()
+const { loadingUserCat, errorUserCat, userCategory, getUserCategory } = useUserCategories()
 const { loadingGroups, errorGroups, group, groups, getGroups, getGroup} = useGroups()
 
 const props = defineProps({
@@ -191,13 +192,27 @@ const props = defineProps({
 
 onMounted(async () => {
     if (props.enableRotation) {
-        const t = Math.random()
+        // deterministic rotation based on task id so it stays the same across reloads
+        function hashToUnit(s) {
+            if (!s) return Math.random()
+            // FNV-1a 32-bit hash
+            let h = 2166136261 >>> 0
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i)
+                h = Math.imul(h, 16777619) >>> 0
+            }
+            return (h >>> 0) / 4294967295
+        }
+
+        const seed = String(props.task && props.task.id ? props.task.id : '')
+        const t = hashToUnit(seed)
         rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
     }
 
-    await getCategoryImgSrc(props.task.category_id)
-    await getCategoryName(props.task.category_id)
+    await getCategory(props.task.category_id)
     await getGroup(props.task.group_id)
+    await getUserCategory(category.value.name)
+
     editForm.value = {
         name: props.task.name || '',
         description: props.task.description || '',
@@ -208,10 +223,10 @@ onMounted(async () => {
 
 // Computed property to get the background image URL
 const backgroundImageUrl = computed(() => {
-    if (!categoryImgSrc.value) return ''
+    if (!category.value || !group.value.id) return ''
     try {
         // Use new URL with import.meta.url to properly resolve the asset path
-        return new URL(`../assets/img/bg-card/${group.value.id}/${categoryImgSrc.value}.png`, import.meta.url).href
+        return new URL(`../assets/img/bg-card/${group.value.id}/${category.value.name}.webp`, import.meta.url).href
     } catch (e) {
         console.error('Error loading background image:', e)
         return ''
@@ -240,6 +255,23 @@ function cancelEdit() {
         subtasks: parsedSubtasks.value.map(st => ({ ...st }))
     }
 }
+
+// Recompute rotation if the task id changes (keeps rotation consistent per id)
+watch(() => props.task && props.task.id, (id) => {
+    if (!props.enableRotation) return
+    function hashToUnit(s) {
+        if (!s) return Math.random()
+        let h = 2166136261 >>> 0
+        for (let i = 0; i < s.length; i++) {
+            h ^= s.charCodeAt(i)
+            h = Math.imul(h, 16777619) >>> 0
+        }
+        return (h >>> 0) / 4294967295
+    }
+    const seed = String(id || '')
+    const t = hashToUnit(seed)
+    rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
+})
 
 function saveEdit() {
     emit('save', {

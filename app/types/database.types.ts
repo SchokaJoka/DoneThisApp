@@ -14,66 +14,197 @@ export type Database = {
   }
   public: {
     Tables: {
-      tasks: {
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
+      groups: {
         Row: {
           created_at: string
           description: string | null
-          due_date: string | null
-          due_time: string | null
           id: string
-          name: string
-          subtasks: string[] | null
-          updated_at: string | null
-          user_id: string | null
+          title: string | null
         }
         Insert: {
           created_at?: string
           description?: string | null
-          due_date?: string | null
-          due_time?: string | null
           id?: string
-          name?: string
-          subtasks?: string[] | null
-          updated_at?: string | null
-          user_id?: string | null
+          title?: string | null
         }
         Update: {
           created_at?: string
           description?: string | null
-          due_date?: string | null
-          due_time?: string | null
           id?: string
-          name?: string
-          subtasks?: string[] | null
-          updated_at?: string | null
-          user_id?: string | null
+          title?: string | null
         }
         Relationships: []
       }
-      tasks_old: {
+      subtasks: {
         Row: {
           created_at: string
+          done: boolean
           id: string
-          name: string
-          priority: number | null
-          updated_at: string
+          name: string | null
+          order: number | null
+          task_id: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
+          done?: boolean
           id?: string
-          name: string
-          priority?: number | null
-          updated_at?: string
-          user_id?: string
+          name?: string | null
+          order?: number | null
+          task_id: string
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
+          done?: boolean
+          id?: string
+          name?: string | null
+          order?: number | null
+          task_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subtasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          due_time: string | null
+          group_id: string | null
+          id: string
+          name: string
+          status: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          group_id?: string | null
           id?: string
           name?: string
-          priority?: number | null
-          updated_at?: string
+          status?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          group_id?: string | null
+          id?: string
+          name?: string
+          status?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_categories: {
+        Row: {
+          blue_name: string
+          bluedark_name: string
+          bluelight_name: string
+          created_at: string
+          green_name: string
+          greenlight_name: string
+          id: string
+          orange_name: string
+          pink_name: string
+          red_name: string
+          rose_name: string
+          turquoise_name: string
+          updated_at: string | null
+          user_id: string
+          violet_name: string
+          yellow_name: string
+        }
+        Insert: {
+          blue_name?: string
+          bluedark_name?: string
+          bluelight_name?: string
+          created_at?: string
+          green_name?: string
+          greenlight_name?: string
+          id?: string
+          orange_name?: string
+          pink_name?: string
+          red_name?: string
+          rose_name?: string
+          turquoise_name?: string
+          updated_at?: string | null
+          user_id: string
+          violet_name?: string
+          yellow_name?: string
+        }
+        Update: {
+          blue_name?: string
+          bluedark_name?: string
+          bluelight_name?: string
+          created_at?: string
+          green_name?: string
+          greenlight_name?: string
+          id?: string
+          orange_name?: string
+          pink_name?: string
+          red_name?: string
+          rose_name?: string
+          turquoise_name?: string
+          updated_at?: string | null
           user_id?: string
+          violet_name?: string
+          yellow_name?: string
         }
         Relationships: []
       }

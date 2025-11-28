@@ -26,6 +26,17 @@ export function useTasks() {
     loading.value = false
   }
 
+  async function getFilteredTasks(categoryId) {
+    error.value = null
+    loading.value = true
+
+    const queryString = new URLSearchParams(categoryId).toString()
+    const response = await $fetch(`/api/tasks?${queryString}`, { method: 'GET' })
+    tasks.value = response
+
+    loading.value = false
+  }
+
   async function createTask(properties) {
     error.value = null
     loading.value = true
