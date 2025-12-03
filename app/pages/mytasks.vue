@@ -1,8 +1,8 @@
 <template>
-  <div class="bg-bg-surface">
-    <div class="flex flex-col w-screen h-fit p-4 gap-4">
-      <div>
-        <h1 class="text-2xl">Kategorien</h1>
+  <div class="bg-bg-surface w-screen">
+    <div class="flex flex-col w-full h-fit p-4 gap-4">
+      <div class="w-full">
+        <p class="overview-label text-text-secondary">Kategorien</p>
       </div>
     </div>
     <div class="flex w-screen gap-4 overflow-x-auto p-4">
@@ -21,9 +21,11 @@
   </div>
 
   
-    <div class="flex w-screen p-4 sticky top-0">
-      <h1 class="text-2xl font-bold">Alle Aufgaben</h1>
+  <div class="flex flex-col w-full h-fit p-4 gap-4 sticky top-0">
+    <div class="w-full">
+      <p class="overview-label text-text-primary">Alle Kategorien</p>
     </div>
+  </div>
 
   <div class="p-8">
     <div class="w-full flex flex-col gap-8">

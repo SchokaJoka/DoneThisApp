@@ -79,14 +79,14 @@ async function saveEdit() {
 const backgroundImageUrl = computed(() => {
     if (props.category.id === 0) {
         try {
-            return new URL(`../assets/img/bg-card/default.webp`, import.meta.url).href
+            return `/img/default.webp`
         } catch (e) {
             console.error('Error loading background image:', e)
             return ''
         }
     }
     try {
-        return new URL(`../assets/img/bg-card/7fe28093-27dd-489b-b089-56109b2b4d14/${props.category.name}.webp`, import.meta.url).href
+        return `/img/bg-card/7fe28093-27dd-489b-b089-56109b2b4d14/${props.category.name}.webp`
     } catch (e) {
         console.error('Error loading background image:', e)
         return ''

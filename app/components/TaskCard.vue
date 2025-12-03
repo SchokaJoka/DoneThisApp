@@ -210,8 +210,7 @@ onMounted(async () => {
 const backgroundImageUrl = computed(() => {
     if (!category.value?.name || !group.value?.id) return ''
     try {
-        // Use new URL with import.meta.url to properly resolve the asset path
-        return new URL(`../assets/img/bg-card/${group.value.id}/${category.value.name}.webp`, import.meta.url).href
+        return `/img/bg-card/${group.value.id}/${category.value.name}.webp`
     } catch (e) {
         console.error('Error loading background image:', e)
         return ''
