@@ -14,22 +14,22 @@ const { categories, getCategories } = useCategories()
 const { userCategories, getUserCategories } = useUserCategories()
 const { groups, getGroups } = useGroups()
 
-onMounted(async () => {
-  if (user.value) {
+watch(user, async (newUser) => {
+  if (newUser) {
     try {
       await Promise.all([getTasks(), getCategories(), getUserCategories(), getGroups()])
     } catch (e) {
-      console.error('Error fetching global data on mount:', e)
+      console.error('Error fetching global data:', e)
     }
     finally {
-      console.log('Global data fetched on mount:')
+      console.log('Global data fetched:')
       console.log('tasks:', tasks.value)
       console.log('categories:', categories.value)
       console.log('userCategories:', userCategories.value)
       console.log('groups:', groups.value)
     }
   }
-})
+}, { immediate: true })
 
 </script>
 

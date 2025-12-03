@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   fonts: {
     families: [
       { name: 'Baloo Chettan 2', provider: 'google' },
-      { name: 'Roboto', provider: 'google' }
+      { name: 'Arial Rounded MT Bold', provider: 'google' }
     ]
   },
   css: ['~/assets/css/main.css'],
