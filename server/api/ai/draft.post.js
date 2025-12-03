@@ -31,8 +31,9 @@ export default defineEventHandler(async (event) => {
     - currentDraft: a partial task object (may be empty)
     - userTranscript: the user's spoken input in an array of strings
     - userCategories: an array of categories provided by the user to choose from
+    - groups: an array of group names provided by the user to choose from
 
-    Your job:
+    Your job is to:
     1) Merge any new concrete details from userTranscript into currentDraft.
     2) Keep the task schema exactly:
       {
@@ -41,11 +42,13 @@ export default defineEventHandler(async (event) => {
         "due_date": string|null,     // ISO YYYY-MM-DD or null if no exact date
         "due_time": string|null,     // HH:MM:SS (24h) or null if no exact time
         "description": string|null,  // 1-2 concise sentences
+        "group": string|null,        // from the input provided groups which match the best or null
+        "subtasks": object|null      // null here, handled separately
       }
-    3) Extract any steps, checkpoints, or subtasks mentioned into an array of subtasks:
+    3) Extract any steps, checkpoints, or subtasks mentioned into an object of subtasks:
       {
-        "subtask_1": { "name": string },
-        "subtask_2": { "name": string },
+        "subtask_1": string,
+        "subtask_2": string,
         ...
       }
     4) Identify any fields that are still missing or weakly specified.
@@ -56,6 +59,7 @@ export default defineEventHandler(async (event) => {
     - If user mentions steps, checkpoints, or subtasks, extract them into the subtasks array as strings.
     - Use cheerful and motivating language in your follow-up question.
     - If userCategories is non-empty, choose the best matching category; otherwise set to null.
+    - If groups is non-empty, choose the best matching group; otherwise set to null.
     - Always respond in JSON format as specified below.
     - Do not invent facts or subtasks. Use only provided information.
     - Write messages in the same language as the user_transcript but German is mostly used.
@@ -64,19 +68,17 @@ export default defineEventHandler(async (event) => {
     {
       "task": { 
         name, 
-        due_date, 
-        description, 
+        category,
+        due_date,
+        due_time,
+        description,
+        group
       },
       "subtasks": { 
-        "subtask_1": {
-          "name": string,
-        },
-        "subtask_2": {
-          "name": string,
-        },
+        "subtask_1": string,
+        "subtask_2": string,
         ...
       },
-      "missingFields": string[],
       "aiMessage": string,
     }
   `.trim()
@@ -86,7 +88,8 @@ export default defineEventHandler(async (event) => {
     prompt: JSON.stringify({ 
       currentDraft: body.draftTask ?? null, 
       userTranscript: body.transcript,
-      userCategories: body.userCategories ?? []
+      userCategories: body.userCategories ?? [],
+      groups: body.groups ?? []
     }) 
   }
 

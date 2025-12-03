@@ -1,9 +1,10 @@
 // composables/useTasks.js
+const loading = ref(false)
+const error = ref(null)
+const tasks = ref([])
+
 export function useTasks() {
 
-  const loading = ref(false)
-  const error = ref(null)
-  const tasks = ref([])
   const task = ref({})
   
   async function getTasks() {
@@ -23,6 +24,17 @@ export function useTasks() {
     const response = await $fetch(`/api/tasks/${taskId}`, { method: 'GET' })
     task.value = response
     
+    loading.value = false
+  }
+
+  async function getFilteredTasks(categoryId) {
+    error.value = null
+    loading.value = true
+
+    const queryString = new URLSearchParams(categoryId).toString()
+    const response = await $fetch(`/api/tasks?${queryString}`, { method: 'GET' })
+    tasks.value = response
+
     loading.value = false
   }
 
