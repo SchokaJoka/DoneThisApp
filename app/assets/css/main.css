@@ -29,6 +29,13 @@
     --font-secondary: "Baloo Chettan 2", system-ui, sans-serif;
     /* Add custom fonts like this: */
     /* --font-custom: "Your Font Name", sans-serif; */
+
+    /* BUTTON COLORS */
+    --color-btn-primary: #D8A8F4;
+    --color-btn-primary-hover: #C589E3;
+    
+    --color-accent: #FF6B6B;
+    --color-accent-hover: #FF5252;
 }
 
 html, body {

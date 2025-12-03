@@ -54,29 +54,29 @@
                     </button>
                     <button class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
                         <div class="size-6 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="stroke-text-primary fill-none">
-                                <g clip-path="url(#clip0_2249_2379)">
-                                    <path d="M5 12L10 17L20 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </g>
-                                <defs>
-                                    <clipPath id="clip0_2249_2379">
-                                        <rect class="w-full h-full"/>
-                                    </clipPath>
-                                </defs>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
+                            <g clip-path="url(#clip0_2523_8899)">
+                                <path d="M5 12L10 17L20 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_2523_8899">
+                                    <rect width="24" height="24" fill="white"/>
+                                </clipPath>
+                            </defs>
                             </svg>
                         </div>
                     </button>
                     <button class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
                         <div class="size-6 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="stroke-text-primary fill-none">
-                                <g clip-path="url(#clip0_2492_8653)">
-                                    <path d="M7 4V20L20 12L7 4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </g>
-                                <defs>
-                                    <clipPath id="clip0_2492_8653">
-                                    <rect class="w-full h-full"/>
-                                    </clipPath>
-                                </defs>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
+                            <g clip-path="url(#clip0_2492_8653)">
+                                <path d="M7 4V20L20 12L7 4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_2492_8653">
+                                    <rect width="24" height="24" fill="white"/>
+                                </clipPath>
+                            </defs>
                             </svg>
                         </div>
                     </button>

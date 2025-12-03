@@ -2,6 +2,9 @@
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+const { userCategories, getUserCategories } = useUserCategories()
+const { groups } = useGroups()
+
 // Recording state
 // =================================
 const isRecording = ref(false)
@@ -25,55 +28,37 @@ const displayedText = ref('')
 const isTyping = ref(false)
 
 const userTask = {
+  showDraft: ref(false),
   name: ref(''),
   description: ref(''),
   category_id: ref(''),
+  group_id: ref(''),
   due_date: ref(''),
   due_time: ref(''),
   status: ref(0)
 }
 
-const userCategories = ref({})
 const categoryDropdownOpen = ref(false)
-const dateTimePickerOpen = ref(false)
 
-// Date/Time picker state
-const selectedYear = ref(new Date().getFullYear())
-const selectedMonth = ref(new Date().getMonth())
-const selectedDay = ref(new Date().getDate())
-const selectedHour = ref(12)
-const selectedMinute = ref(0)
-
-// Helper functions for date picker
-function getDaysInMonth(year, month) {
-  return new Date(year, month + 1, 0).getDate()
-}
-
-function getFirstDayOfMonth(year, month) {
-  return new Date(year, month, 1).getDay()
-}
-
-function formatDateTime() {
-  if (!userTask.due_date.value && !userTask.due_time.value) return 'Date Time'
-  const date = userTask.due_date.value ? new Date(userTask.due_date.value).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' }) : ''
-  const time = userTask.due_time.value || ''
-  return `${date} ${time}`.trim()
-}
-
-function applyDateTime() {
-  const year = selectedYear.value
-  const month = String(selectedMonth.value + 1).padStart(2, '0')
-  const day = String(selectedDay.value).padStart(2, '0')
-  userTask.due_date.value = `${year}-${month}-${day}`
-  
-  const hour = String(selectedHour.value).padStart(2, '0')
-  const minute = String(selectedMinute.value).padStart(2, '0')
-  userTask.due_time.value = `${hour}:${minute}`
-  
-  dateTimePickerOpen.value = false
-}
-
-const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+// Combined datetime for the input
+const dateTimeLocal = computed({
+  get() {
+    if (!userTask.due_date.value) return ''
+    const date = userTask.due_date.value
+    const time = userTask.due_time.value || '00:00'
+    return `${date}T${time}`
+  },
+  set(value) {
+    if (!value) {
+      userTask.due_date.value = ''
+      userTask.due_time.value = ''
+      return
+    }
+    const [date, time] = value.split('T')
+    userTask.due_date.value = date
+    userTask.due_time.value = time
+  }
+})
 
 
 
@@ -105,10 +90,7 @@ watch(() => assistantMessage.value.length, async (newLength, oldLength) => {
   }
 })
 
-// Get and store user ID on mount
 onMounted(async () => {
-  userCategories.value = await getUserCategories()
-  // Trigger initial message animation
   if (assistantMessage.value.length > 0) {
     await typeText(assistantMessage.value[0])
   }
@@ -132,7 +114,7 @@ async function handleUserAudio() {
     return
   }
 
-  assistantResponse.value = await getAssistantDraft(userTranscript.value, userTask.value, userCategories.value)
+  assistantResponse.value = await getAssistantDraft(userTranscript.value, userTask.value, userCategories.value, groups.value)
   console.log('Assistant response: ', assistantResponse.value)
 
   assistantDraft.value = assistantResponse.value.draftResponse.task
@@ -141,19 +123,12 @@ async function handleUserAudio() {
 
   userTask.name.value = assistantDraft.value.name || ''
   userTask.description.value = assistantDraft.value.description || ''
-  userTask.category_id.value = assistantDraft.value.category || ''
+  userTask.group_id.value = assistantDraft.value.category || ''  // AI chooses the group
   userTask.due_date.value = assistantDraft.value.due_date || ''
   userTask.due_time.value = assistantDraft.value.due_time || ''
-
+  userTask.showDraft.value = true
 
   return
-}
-
-async function getUserCategories() {
-  const data = await $fetch('/api/categories', {
-    method: 'GET',
-  })
-  return data
 }
 
 function supportedType() {
@@ -284,13 +259,14 @@ async function transcribeAudio(url) {
   return data || ''
 }
 
-async function getAssistantDraft(userTranscript, existingDraft, userCategories) {
+async function getAssistantDraft(userTranscript, existingDraft, userCategories, groups) {
   const data = await $fetch('/api/ai/draft', {
     method: 'POST',
     body: {
       transcript: userTranscript,
       existingDraft: JSON.stringify(existingDraft),
-      userCategories: JSON.stringify(userCategories)
+      userCategories: JSON.stringify(userCategories), 
+      groups: JSON.stringify(groups),
     },
   })
 
@@ -318,133 +294,24 @@ onBeforeUnmount(() => {
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 -translate-y-4"
     >
-      <div v-if="userTask.name.value" class="sticky top-0 z-30 w-full h-full  flex justify-center items-start px-4 pt-4">
+      <div v-if="userTask.showDraft.value" class="sticky top-0 z-30 w-full h-full  flex justify-center items-start px-4 pt-4">
         <div class="w-full max-w-[500px] flex flex-col justify-start items-start bg-bg-surface p-[11px] rounded-[21px] gap-4">
           <div class="w-full flex flex-row justify-between items-center">
           <div>
-            <select v-model="userTask.category_id.value" class="w-full h-[40px] rounded-lg bg-transparent ">
+            <select v-model="userTask.category_id.value" class="h-[40px] px-3 rounded-lg bg-white border border-gray-300">
               <option value="" disabled selected>Kategorie</option>
-              <option v-for="category in userCategories" :key="category.id" :value="category.name">
-                {{ category.name }}
+              <option v-for="(name, key) in userCategories" :key="key" :value="key">
+                {{ name }}
               </option>
             </select>
           </div>
           
-          <!-- Custom Date/Time Display Button -->
-          <div class="relative">
-            <button 
-              type="button"
-              @click="dateTimePickerOpen = !dateTimePickerOpen"
-              class="h-[40px] px-4 rounded-lg bg-white border border-gray-300 hover:border-gray-400 transition-colors flex items-center gap-2"
-            >
-              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span class="text-sm">
-                {{ formatDateTime() }}
-              </span>
-            </button>
-
-            <!-- Date/Time Picker Dropdown -->
-            <div 
-              v-if="dateTimePickerOpen"
-              class="absolute right-0 mt-2 bg-white rounded-xl p-4 shadow-lg border border-gray-200 z-50 w-[320px]"
-            >
-              <!-- Month/Year Selector -->
-              <div class="flex justify-between items-center mb-3">
-                <button @click="selectedMonth = selectedMonth === 0 ? 11 : selectedMonth - 1" class="p-1 hover:bg-gray-100 rounded">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <div class="font-semibold text-gray-900">
-                  {{ monthNames[selectedMonth] }} {{ selectedYear }}
-                </div>
-                <button @click="selectedMonth = selectedMonth === 11 ? 0 : selectedMonth + 1" class="p-1 hover:bg-gray-100 rounded">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-
-              <!-- Calendar Grid -->
-              <div class="grid grid-cols-7 gap-1 mb-4">
-                <!-- Day headers -->
-                <div v-for="day in ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']" :key="day" 
-                     class="text-center text-xs font-medium text-gray-500 py-1">
-                  {{ day }}
-                </div>
-                
-                <!-- Empty cells for first day offset -->
-                <div v-for="i in getFirstDayOfMonth(selectedYear, selectedMonth)" :key="'empty-' + i"></div>
-                
-                <!-- Day cells -->
-                <button
-                  v-for="day in getDaysInMonth(selectedYear, selectedMonth)"
-                  :key="day"
-                  @click="selectedDay = day"
-                  :class="[
-                    'aspect-square rounded-lg text-sm transition-colors',
-                    selectedDay === day 
-                      ? 'bg-orange-500 text-white font-semibold' 
-                      : 'hover:bg-gray-100 text-gray-700'
-                  ]"
-                >
-                  {{ day }}
-                </button>
-              </div>
-
-              <!-- Time Selector -->
-              <div class="border-t pt-3 mb-3">
-                <div class="flex items-center justify-center gap-2">
-                  <div class="flex flex-col items-center">
-                    <button @click="selectedHour = selectedHour === 23 ? 0 : selectedHour + 1" 
-                            class="p-1 hover:bg-gray-100 rounded">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                      </svg>
-                    </button>
-                    <div class="text-2xl font-semibold w-12 text-center">
-                      {{ String(selectedHour).padStart(2, '0') }}
-                    </div>
-                    <button @click="selectedHour = selectedHour === 0 ? 23 : selectedHour - 1" 
-                            class="p-1 hover:bg-gray-100 rounded">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  <span class="text-2xl font-semibold">:</span>
-                  
-                  <div class="flex flex-col items-center">
-                    <button @click="selectedMinute = selectedMinute === 59 ? 0 : selectedMinute + 1" 
-                            class="p-1 hover:bg-gray-100 rounded">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                      </svg>
-                    </button>
-                    <div class="text-2xl font-semibold w-12 text-center">
-                      {{ String(selectedMinute).padStart(2, '0') }}
-                    </div>
-                    <button @click="selectedMinute = selectedMinute === 0 ? 59 : selectedMinute - 1" 
-                            class="p-1 hover:bg-gray-100 rounded">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Apply Button -->
-              <button 
-                @click="applyDateTime"
-                class="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 rounded-lg transition-colors"
-              >
-                Apply
-              </button>
-            </div>
+          <div>
+            <input 
+              type="datetime-local"
+              v-model="dateTimeLocal"
+              class="h-[40px] px-3 rounded-lg bg-white border border-gray-300"
+            />
           </div>
 
           </div>
@@ -472,7 +339,7 @@ onBeforeUnmount(() => {
     </Transition>
 
 
-    <div v-if="!userTask.name.value" class="">
+    <div v-if="!userTask.showDraft.value" class="flex flex-col items-center gap-6">
         <div class="max-w-[500px] max-h-[50vh]">
           <Lottie 
             name="playing-cards"
@@ -523,16 +390,36 @@ onBeforeUnmount(() => {
     <!-- Recording button -->
   </div>
   <div class="w-full h-[10dvh] sticky bottom-16 flex justify-center items-center p-4">
-    <div class="w-full h-full flex justify-center items-center mb-8 p-4">
+    <TransitionGroup 
+      tag="div" 
+      class="flex justify-center items-center gap-4 mb-8"
+      enter-active-class="transition-all duration-300 ease-out"
+      enter-from-class="opacity-0 scale-75"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition-all duration-300 ease-in absolute"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-75"
+      move-class="transition-transform duration-200 ease-in-out"
+    >
       <button 
+        v-if="!userTask.showDraft.value"
+        key="manual-btn"
+        @click="userTask.showDraft.value = true"
+        class="h-16 px-6 flex items-center justify-center bg-btn-primary hover:bg-btn-primary-hover text-text-secondary rounded-lg transition-all font-medium shadow-md"
+      >
+        Manual Creation
+      </button>
+      
+      <button 
+        key="mic-btn"
         @click="isRecording ? stopRecording() : startRecording()"
         :class="[
-          'flex items-center justify-center w-16 h-16 text-white font-medium rounded-full transition-colors ',
-          isRecording ? 'bg-accent hover:bg-accent-hover animate-pulse' : 'bg-bg-surface hover:bg-bg-surface-hover'
+          'flex items-center justify-center w-16 h-16 rounded-full transition-all shadow-lg',
+          isRecording ? 'bg-accent hover:bg-accent-hover animate-pulse text-white' : 'bg-btn-primary hover:bg-btn-primary-hover text-text-secondary'
         ]"
       >
         <template v-if="!isRecording">
-          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
           </svg>
@@ -541,6 +428,6 @@ onBeforeUnmount(() => {
           <div class="w-3 h-3 bg-white rounded-full"></div>
         </template>
       </button>
-    </div>
+    </TransitionGroup>
   </div>
 </template>
