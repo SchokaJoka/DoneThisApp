@@ -2,7 +2,7 @@
 <template>
   <div class="l-svh w-lvw bg-bg">
     <NuxtPage />
-    <Navigation />
+    <Navigation v-if="user" />
   </div>
 </template>
 

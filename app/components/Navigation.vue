@@ -1,6 +1,6 @@
 <template>
     <nav
-        class="z-1 fixed bottom-0 left-0 right-0 p-2 backdrop-blur rounded-full m-4 bg-bg-surface"
+        class="z-1 fixed bottom-[env(safe-area-inset-bottom,0px)] left-0 right-0 p-2 backdrop-blur bg-bg-surface"
     >
         <div class="flex items-center justify-around">
             <NuxtLink
