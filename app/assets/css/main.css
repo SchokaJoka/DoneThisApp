@@ -32,7 +32,7 @@
 }
 
 html, body {
-    background-color: var(--color-bg-surface);
+    background-color: var(--color-bg);
     margin: 0;
     padding: 0;
 }
