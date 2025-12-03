@@ -5,84 +5,76 @@
             :style="{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }"
         >
             <!-- Front of card -->
-            <div class="w-full h-full min-h-[70dvh] max-w-[400px] inset-0 backface-hidden flex flex-col justify-between items-start bg-cover bg-center p-[15px] rounded-[25px] gap-4 bg-bg-surface" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
+            <div class="w-[360px] h-[550px] backface-hidden flex flex-col justify-center items-center bg-cover bg-center rounded-2xl bg-bg-surface" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
 
-                <div class="w-full flex flex-col items-start gap-8">
-                    <div class="w-full flex h-10 justify-between self-stretch ">
-                        <div class="flex justify-center items-center">
-                            <span class="text-md font-semibold text-text-primary">
+                <div class="w-full h-full pt-4 px-6 flex flex-col items-start">
+                    <div class="w-full  pb-12 flex justify-between self-stretch">
+                        <div class="flex">
+                            <span>
                                 {{ userCategoryName }}
                             </span>
                         </div>
-                        <div v-if="task.due_date" class="flex justify-center items-center gap-1">
-                            <span class="text-md font-semibold text-text-primary">
+                        <div v-if="task.due_date" class="flex">
+                            <span>
                                 {{ formatDate(task.due_date) }}
                                 <span v-if="task.due_time"> {{ task.due_time }}</span>
                             </span>
                         </div>
                     </div>
-                    <div class="w-full flex flex-col gap-4">
+                    <div class="w-full flex flex-col gap-4 items-start">
                         <div class="w-full">
-                            <h1 class="text-4xl font-medium text-left">
-                            {{ task.name || 'Untitled Task' }}
+                            <h1>
+                            {{ task.name }}
                             </h1>
                         </div>
                         <div class="w-full">
-                            <p class="text-[20px] font-light text-left">
-                            {{ task.description  || 'No description provided' }}
+                            <p>
+                            {{ task.description }}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div class="w-full flex justify-center gap-[7px]">
-                    <button @click.stop="editTask" class="flex px-[17px] py-[11px] bg-bg rounded-[10px]">
-                        <div class="size-[24px] flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <div class="w-full flex justify-center items-center gap-4 pb-4 px-4 self-stretch">
+                    <button @click.stop="editTask" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
+                        <div class="size-6 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="stroke-text-primary fill-none">
                                 <g clip-path="url(#clip0_2249_2354)">
-                                    <path d="M12 15.0001L20.385 6.58511C20.7788 6.19126 21.0001 5.65709 21.0001 5.10011C21.0001 4.54312 20.7788 4.00895 20.385 3.61511C19.9912 3.22126 19.457 3 18.9 3C18.343 3 17.8088 3.22126 17.415 3.61511L9 12.0001V15.0001H12Z" stroke="#FF8B0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M16 5L19 8" stroke="#FF8B0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M8.99992 7.07031C7.24571 7.32025 5.65156 8.22616 4.53904 9.6053C3.42651 10.9844 2.87841 12.7342 3.00528 14.5015C3.13216 16.2689 3.92457 17.9224 5.22269 19.1285C6.5208 20.3346 8.228 21.0035 9.99992 21.0003C11.6833 21.0005 13.3104 20.394 14.583 19.2921C15.8556 18.1901 16.6884 16.6664 16.9289 15.0003" stroke="#FF8B0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 15.0001L20.385 6.58511C20.7788 6.19126 21.0001 5.65709 21.0001 5.10011C21.0001 4.54312 20.7788 4.00895 20.385 3.61511C19.9912 3.22126 19.457 3 18.9 3C18.343 3 17.8088 3.22126 17.415 3.61511L9 12.0001V15.0001H12Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M16 5L19 8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M8.99992 7.07031C7.24571 7.32025 5.65156 8.22616 4.53904 9.6053C3.42651 10.9844 2.87841 12.7342 3.00528 14.5015C3.13216 16.2689 3.92457 17.9224 5.22269 19.1285C6.5208 20.3346 8.228 21.0035 9.99992 21.0003C11.6833 21.0005 13.3104 20.394 14.583 19.2921C15.8556 18.1901 16.6884 16.6664 16.9289 15.0003" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </g>
                                 <defs>
                                     <clipPath id="clip0_2249_2354">
-                                        <rect width="24" height="24" fill="white"/>
+                                        <rect class="w-full h-full"/>
                                     </clipPath>
                                 </defs>
                             </svg>
                         </div>
                     </button>
-                    <button @click="handleDelete" class="flex px-[17px] py-[11px] bg-bg rounded-[10px]">
-                        <div class="size-[24px] flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke="#FF8B0A" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </div>
-                    </button>
-                    <button class="flex px-[17px] py-[11px] bg-bg rounded-[10px]">
-                        <div class="size-[24px] flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <button class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
+                        <div class="size-6 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="stroke-text-primary fill-none">
                                 <g clip-path="url(#clip0_2249_2379)">
-                                    <path d="M5 12L10 17L20 7" stroke="#FF8B0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5 12L10 17L20 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </g>
                                 <defs>
                                     <clipPath id="clip0_2249_2379">
-                                        <rect width="24" height="24" fill="white"/>
+                                        <rect class="w-full h-full"/>
                                     </clipPath>
                                 </defs>
                             </svg>
                         </div>
                     </button>
-                    <button class="flex w-full justify-center items-center self-stretch py-[11px] bg-bg rounded-[10px]">
-                        <div class="size-[24px] flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <g clip-path="url(#clip0_2249_2374)">
-                                    <path d="M10 12C10 12.5304 10.2107 13.0391 10.5858 13.4142C10.9609 13.7893 11.4696 14 12 14C12.5304 14 13.0391 13.7893 13.4142 13.4142C13.7893 13.0391 14 12.5304 14 12C14 11.4696 13.7893 10.9609 13.4142 10.5858C13.0391 10.2107 12.5304 10 12 10C11.4696 10 10.9609 10.2107 10.5858 10.5858C10.2107 10.9609 10 11.4696 10 12Z" stroke="#FF8B0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M21 12C18.6 16 15.6 18 12 18C8.4 18 5.4 16 3 12C5.4 8 8.4 6 12 6C15.6 6 18.6 8 21 12Z" stroke="#FF8B0A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <button class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
+                        <div class="size-6 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="stroke-text-primary fill-none">
+                                <g clip-path="url(#clip0_2492_8653)">
+                                    <path d="M7 4V20L20 12L7 4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </g>
                                 <defs>
-                                    <clipPath id="clip0_2249_2374">
-                                        <rect width="24" height="24" fill="white"/>
+                                    <clipPath id="clip0_2492_8653">
+                                    <rect class="w-full h-full"/>
                                     </clipPath>
                                 </defs>
                             </svg>

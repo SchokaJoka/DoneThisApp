@@ -6,9 +6,17 @@
       </div>
     </div>
     <div class="flex w-screen gap-4 overflow-x-auto p-4">
+      <div>
+        <CategoryCard :category="{
+          id: 0,
+          name: 'Alle Aufgaben',
+          color: '#9CA3AF'
+        }"/>
+      </div>
       <div v-for="(category) in categories" :key="category.id">
         <CategoryCard :category="category"/>
       </div>
+
     </div>
   </div>
 

@@ -14,7 +14,7 @@
     --color-bg-fill: #FFFEEB; 
     
     /* TEXT */
-    --color-text-primary: #333333;
+    --color-text-primary: #2B2B2B;
     --color-text-secondary: #FFFEEB;
     
     /* ICON */
@@ -23,10 +23,44 @@
     /* ICON */
     --color-icon: #999999;
     --color-icon-active: #333333;
+
+    /* FONTS */
+    --font-primary: 'Arial Rounded MT Bold', system-ui, sans-serif;
+    --font-secondary: 'Baloo Chettan 2', system-ui, sans-serif;
+    /* Add custom fonts like this: */
+    /* --font-custom: "Your Font Name", sans-serif; */
 }
 
 html, body {
     background-color: #FFFEEB;
     margin: 0;
     padding: 0;
+}
+
+* {
+    font-family: var(--font-primary);
+    color: var(--color-text-primary);
+}
+
+h1 {
+    font-size: 2.1875rem;
+    font-weight: 400;
+    line-height: 2.1875rem;
+}
+
+p {
+    /* Fliesstext */
+    font-family: var(--font-secondary);
+    font-size: 1.1875rem; 
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.3125rem;
+}
+
+span {
+    font-family: var(--font-secondary);
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
 }
