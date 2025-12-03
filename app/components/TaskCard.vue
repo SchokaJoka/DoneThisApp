@@ -1,7 +1,7 @@
 <template>
-    <div class="w-full h-full perspective-1000 flex justify-center items-center">
+    <div class="perspective-1000 flex justify-center items-center">
         <div 
-            class="w-full h-full transition-transform duration-700 transform-style-3d flex justify-center items-center"
+            class="transition-transform duration-700 transform-style-3d flex justify-center items-center"
             :style="{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }"
         >
             <!-- Front of card -->
