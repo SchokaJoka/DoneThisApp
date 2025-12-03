@@ -11,7 +11,7 @@
                     <div class="w-full flex h-10 justify-between self-stretch ">
                         <div class="flex justify-center items-center">
                             <span class="text-md font-semibold text-text-primary">
-                                {{ userCategory || '' }}
+                                {{ userCategoryName }}
                             </span>
                         </div>
                         <div v-if="task.due_date" class="flex justify-center items-center gap-1">
@@ -36,7 +36,7 @@
                 </div>
 
                 <div class="w-full flex justify-center gap-[7px]">
-                    <button @click.stop="isFlipped = true" class="flex px-[17px] py-[11px] bg-bg rounded-[10px]">
+                    <button @click.stop="editTask" class="flex px-[17px] py-[11px] bg-bg rounded-[10px]">
                         <div class="size-[24px] flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                 <g clip-path="url(#clip0_2249_2354)">
@@ -52,7 +52,7 @@
                             </svg>
                         </div>
                     </button>
-                    <button @click="$emit('delete', task.id)" class="flex px-[17px] py-[11px] bg-bg rounded-[10px]">
+                    <button @click="handleDelete" class="flex px-[17px] py-[11px] bg-bg rounded-[10px]">
                         <div class="size-[24px] flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke="#FF8B0A" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -92,7 +92,7 @@
             </div>
 
             <!-- Back of card (Edit form) -->
-            <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start bg-orange-50 p-[11px] rounded-[21px]" style="transform: rotateY(180deg)">
+            <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start p-[11px] rounded-[21px]" :style="{ transform: 'rotateY(180deg)', backgroundColor: category?.color || '#FFF7ED' }">
                 <div class="w-full h-full overflow-y-auto space-y-4 pb-4">
                     <h2 class="text-xl font-semibold mb-4">Edit Task</h2>
                     
@@ -167,13 +167,14 @@
 </template>
 
 <script setup>
-const { loadingCat, errorCat, categories, category, getCategories, getCategory } = useCategories()
-const { loadingUserCat, errorUserCat, userCategory, getUserCategory } = useUserCategories()
-const { loadingGroups, errorGroups, group, groups, getGroups, getGroup} = useGroups()
+const { tasks, task, updateTask, deleteTask, getTasks, getTask} = useTasks()
+const { loadingGroups, errorGroups, groups, getGroups, getGroup} = useGroups()
+const { categories } = useCategories()
+const { userCategories } = useUserCategories()
 
 const props = defineProps({
-    task: {
-        type: Object,
+    taskId: {
+        type: String,
         required: true
     },
     enableRotation: {
@@ -190,40 +191,32 @@ const props = defineProps({
     }
 })
 
+const category = computed(() => {
+    return categories.value.find(cat => cat.id === task.value.category_id) || null
+})
+
+const userCategoryName = computed(() => {
+    if (!category.value) return null
+    const catName = category.value.name
+    return userCategories.value[`${catName}_name`] || null
+})
+
+const group = computed(() => {
+    return groups.value.find(g => g && g.id === task.value.group_id) || null
+})
+
 onMounted(async () => {
     if (props.enableRotation) {
-        // deterministic rotation based on task id so it stays the same across reloads
-        function hashToUnit(s) {
-            if (!s) return Math.random()
-            // FNV-1a 32-bit hash
-            let h = 2166136261 >>> 0
-            for (let i = 0; i < s.length; i++) {
-                h ^= s.charCodeAt(i)
-                h = Math.imul(h, 16777619) >>> 0
-            }
-            return (h >>> 0) / 4294967295
-        }
-
-        const seed = String(props.task && props.task.id ? props.task.id : '')
+        const seed = String(task.value?.id || '')
         const t = hashToUnit(seed)
         rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
     }
-
-    await getCategory(props.task.category_id)
-    await getGroup(props.task.group_id)
-    await getUserCategory(category.value.name)
-
-    editForm.value = {
-        name: props.task.name || '',
-        description: props.task.description || '',
-        due_date: props.task.due_date || '',
-        due_time: props.task.due_time || '',
-    }
+    getTask(props.taskId)
 })
 
 // Computed property to get the background image URL
 const backgroundImageUrl = computed(() => {
-    if (!category.value || !group.value.id) return ''
+    if (!category.value?.name || !group.value?.id) return ''
     try {
         // Use new URL with import.meta.url to properly resolve the asset path
         return new URL(`../assets/img/bg-card/${group.value.id}/${category.value.name}.webp`, import.meta.url).href
@@ -233,57 +226,56 @@ const backgroundImageUrl = computed(() => {
     }
 })
 
-const emit = defineEmits(['delete', 'save'])
-
 const rotation = ref(0)
 const isFlipped = ref(false)
 const editForm = ref({
     name: '',
     description: '',
     due_date: '',
-    due_time: '',
-    subtasks: []
+    due_time: ''
 })
 
-function cancelEdit() {
-    isFlipped.value = false
-    editForm.value = {
-        name: props.task.name || '',
-        description: props.task.description || '',
-        due_date: props.task.due_date || '',
-        due_time: props.task.due_time || '',
-        subtasks: parsedSubtasks.value.map(st => ({ ...st }))
-    }
-}
-
 // Recompute rotation if the task id changes (keeps rotation consistent per id)
-watch(() => props.task && props.task.id, (id) => {
+watch(() => task.value?.id, (id) => {
     if (!props.enableRotation) return
-    function hashToUnit(s) {
-        if (!s) return Math.random()
-        let h = 2166136261 >>> 0
-        for (let i = 0; i < s.length; i++) {
-            h ^= s.charCodeAt(i)
-            h = Math.imul(h, 16777619) >>> 0
-        }
-        return (h >>> 0) / 4294967295
-    }
     const seed = String(id || '')
     const t = hashToUnit(seed)
     rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
 })
 
-function saveEdit() {
-    emit('save', {
-        taskId: props.task.id,
-        updates: {
-            name: editForm.value.name,
-            description: editForm.value.description,
-            due_date: editForm.value.due_date || null,
-            due_time: editForm.value.due_time || null,
-        }
-    })
+function handleDelete() {
+    return
+}
+
+function editTask() {
+    editForm.value = {
+        name: task.value.name || '',
+        description: task.value.description || '',
+        due_date: task.value.due_date || '',
+        due_time: task.value.due_time || ''
+    }
+    isFlipped.value = true
+}
+
+function cancelEdit() {
     isFlipped.value = false
+    editForm.value = {
+        name: task.value.name,
+        description: task.value.description,
+        due_date: task.value.due_date,
+        due_time: task.value.due_time,
+    }
+}
+
+function saveEdit() {
+    isFlipped.value = false
+    updateTask(task.value.id, {
+        name: editForm.value.name,
+        description: editForm.value.description,
+        due_date: editForm.value.due_date,
+        due_time: editForm.value.due_time,
+    })
+    getTask(props.taskId)
 }
 
 function formatDate(dateString) {
@@ -295,6 +287,17 @@ function formatDate(dateString) {
         month: '2-digit',
         year: 'numeric'
     })
+}
+
+function hashToUnit(s) {
+    if (!s) return Math.random()
+    // FNV-1a 32-bit hash
+    let h = 2166136261 >>> 0
+    for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i)
+        h = Math.imul(h, 16777619) >>> 0
+    }
+    return (h >>> 0) / 4294967295
 }
 </script>
 

@@ -1,8 +1,9 @@
-export function useCategories() {
 
-  const loading = ref(false)
-  const error = ref(null)
-  const categories = ref([])
+const loading = ref(false)
+const error = ref(null)
+const categories = ref([])
+
+export function useCategories() {
   const category = ref('')
   
   async function getCategories() {
@@ -13,8 +14,6 @@ export function useCategories() {
     categories.value = response
 
     loading.value = false
-
-    console.log('Fetched categories:', categories.value)
   }
 
   async function getCategory(categoryId) {

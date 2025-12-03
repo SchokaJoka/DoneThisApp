@@ -1,8 +1,9 @@
-export function useUserCategories() {
+// Shared state outside the function - singleton pattern
+const loading = ref(false)
+const error = ref(null)
+const userCategories = ref({})
 
-  const loading = ref(false)
-  const error = ref(null)
-  const userCategories = ref({})
+export function useUserCategories() {
   const userCategory = ref('')
 
   async function getUserCategories() {
@@ -13,8 +14,6 @@ export function useUserCategories() {
     userCategories.value = response
 
     loading.value = false
-
-    console.log('UserCategories:', userCategories.value)
   }
 
   async function getUserCategory(colorName) {
@@ -26,13 +25,15 @@ export function useUserCategories() {
     loading.value = false
   }
 
-  async function updateUserCategory(categoryId, userLabel) {
+  async function updateUserCategory(color, newName) {
     error.value = null
     loading.value = true
     
-    await $fetch(`/api/userCategories/${categoryId}`, {
+    await $fetch(`/api/userCategories/${color}`, {
       method: 'PATCH',
-      body: userLabel
+      body: {
+        newName: newName
+      }
     })    
 
     loading.value = false

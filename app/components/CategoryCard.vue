@@ -7,13 +7,9 @@
             <!-- Front of card (existing content) -->
             <div class="w-30 h-50 rounded-2xl flex flex-col justify-between items-center p-4 backface-hidden" :style="{ backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none', backgroundSize: 'cover' }">
                 <div></div>
-                <h2 class="text-md text-center font-semibold mb-2">{{ userCategory }}</h2>
-                <div class="relative bottom-0 w-full flex justify-center items-center p-1">
-
-                </div>
-
+                <h2 class="text-md text-center font-semibold mb-2">{{ categoryName }}</h2>
                 <div class="w-full flex justify-center gap-2 mt-2">
-                    <button @click.stop="isFlipped = true" class="flex justify-center items-center px-4 py-2 rounded-2xl bg-bg-fill">
+                    <button @click.stop="edit"  class="flex justify-center items-center p-4 py-2 rounded-2xl bg-bg-fill">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-black">
                             <g clip-path="url(#clip0_2249_2354)">
                                 <path d="M12 15.0001L20.385 6.58511C20.7788 6.19126 21.0001 5.65709 21.0001 5.10011C21.0001 4.54312 20.7788 4.00895 20.385 3.61511C19.9912 3.22126 19.457 3 18.9 3C18.343 3 17.8088 3.22126 17.415 3.61511L9 12.0001V15.0001H12Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -31,10 +27,10 @@
             </div>
 
             <!-- Back of card (Edit form) -->
-            <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start p-4 rounded-2xl" :style="{ transform: 'rotateY(180deg)', backgroundColor: category.color }">
+            <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start p-2 rounded-2xl" :style="{ transform: 'rotateY(180deg)', backgroundColor: category.color }">
                 <div class="w-full">
                     <div class="mb-3 w-full">
-                        <input v-model="editForm.userLabel" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        <input v-model="input" type="text" class="w-full p-2 bg-bg border border-border rounded-lg" />
                     </div>
                 </div>
 
@@ -47,39 +43,37 @@
     </div>
 </template>
 <script setup>
-const { loadingUserCat, errorUserCat, userCategory, getUserCategory, updateUserCategory } = useUserCategories()
+
+const { userCategories, updateUserCategory, getUserCategories } = useUserCategories()
 
 const props = defineProps({
     category: {
         type: Object,
         required: true
-    }, 
-    userCategoryName: {
-        type: String,
-        required: true
     }
 })
 
+const input = ref("")
 const isFlipped = ref(false)
-const editForm = ref({
-    name: props.category?.name || '',
-    userLabel: ''
+
+const categoryName = computed(() => {
+    return userCategories.value[`${props.category.name}_name`] || props.category.name
 })
 
-onMounted(async () => {
-    await getUserCategory(props.category.name)
-    editForm.value = {
-        userLabel: userCategory || ''
-    }
-})
+function edit() {
+    input.value = categoryName.value
+    isFlipped.value = true
+}
 
 function cancelEdit() {
     isFlipped.value = false
-
+    input.value = ""
 }
 
-function saveEdit() {
+async function saveEdit() {
     isFlipped.value = false
+    await updateUserCategory(props.category.name, input.value)
+    await getUserCategories()
 }
 
 const backgroundImageUrl = computed(() => {

@@ -1,8 +1,9 @@
+const loading = ref(false)
+const error = ref(null)
+const groups = ref([])
+
 export function useGroups() {
 
-  const loading = ref(false)
-  const error = ref(null)
-  const groups = ref([])
   const group = ref('')
   
   async function getGroups() {
@@ -11,7 +12,7 @@ export function useGroups() {
 
     const response = await $fetch('/api/groups', { method: 'GET' })
     groups.value = response
-    groups.value = response.map(category => category.name)
+    // groups.value = response.map(category => category.name)
 
     loading.value = false
   }

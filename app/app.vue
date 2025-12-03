@@ -12,24 +12,24 @@ const user = useSupabaseUser()
 const { tasks, getTasks } = useTasks()
 const { categories, getCategories } = useCategories()
 const { userCategories, getUserCategories } = useUserCategories()
+const { groups, getGroups } = useGroups()
 
 onMounted(async () => {
   if (user.value) {
     try {
-      await Promise.all([getTasks(), getCategories(), getUserCategories()])
+      await Promise.all([getTasks(), getCategories(), getUserCategories(), getGroups()])
     } catch (e) {
       console.error('Error fetching global data on mount:', e)
     }
+    finally {
+      console.log('Global data fetched on mount:')
+      console.log('tasks:', tasks.value)
+      console.log('categories:', categories.value)
+      console.log('userCategories:', userCategories.value)
+      console.log('groups:', groups.value)
+    }
   }
-  console.log('app.vue tasks: ', tasks)
-  console.log('app.vue categories: ', categories)
-  console.log('app.vue userCategories: ', userCategories)
 })
-
-// data for descendant components for inject
-provide('tasks', tasks)
-provide('categories', categories)
-provide('userCategories', userCategories)
 
 </script>
 

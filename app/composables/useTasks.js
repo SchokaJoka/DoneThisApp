@@ -1,9 +1,10 @@
 // composables/useTasks.js
+const loading = ref(false)
+const error = ref(null)
+const tasks = ref([])
+
 export function useTasks() {
 
-  const loading = ref(false)
-  const error = ref(null)
-  const tasks = ref([])
   const task = ref({})
   
   async function getTasks() {

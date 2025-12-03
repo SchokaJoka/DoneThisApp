@@ -7,7 +7,7 @@
     </div>
     <div class="flex w-screen gap-4 overflow-x-auto p-4">
       <div v-for="(category) in categories" :key="category.id">
-        <CategoryCard :category="category" :userCategoryName="userCategoryName(category.name)" />
+        <CategoryCard :category="category"/>
       </div>
     </div>
   </div>
@@ -21,7 +21,9 @@
     <div class="w-full flex flex-col gap-8">
       <div
         v-for="task in tasks" :key="task.id" class="w-full min-h-[70dvh] flex justify-center items-center sticky top-16">
-        <TaskCard :task="task" :enable-rotation="false" />
+        <TaskCard 
+        :taskId="task.id" 
+        :enable-rotation="false" />
       </div>
 
     </div>
@@ -30,27 +32,8 @@
 </template>
     
 <script setup>
-const editingTaskId = ref(null)
-const scrollContainer = ref(null)
 
-// Use injected global refs populated by `app.vue` (fetched only when authenticated)
-const tasks = inject('tasks')
-const categories = inject('categories')
-const userCategories = inject('userCategories')
-const userCategoryName = (categoryName) => {
-  const userCategory = userCategories.value?.[`${categoryName}_name`]
-  console.log('userCategory:', userCategory)
-  console.log('categoryName:', categoryName)
-  console.log('userCategories full:', userCategories.value)
-  return userCategory ? userCategory : categoryName
+const { tasks } = useTasks()
+const { categories } = useCategories()
 
-}
-
-onMounted(async () => {
-  // Ensure scroll starts at top instantly
-  await nextTick()
-  if (scrollContainer.value) {
-    scrollContainer.value.scrollTo({ top: 0, behavior: 'instant' })
-  }
-})
 </script>
