@@ -19,13 +19,17 @@ export default defineEventHandler(async (event) => {
   const { data, error } = await client
     .from('user_categories')
     .select('*')
-    .single()
     .eq('user_id', verifiedUser.id)
+    .single()
 
   if (error) {
+    // PGRST116 = no rows returned - this is OK, user just doesn't have custom categories yet
+    if (error.code === 'PGRST116') {
+      throw createError ({ statusCode: 404, statusMessage: 'User has no Row in userCategories' })
+      return {}
+    }
     console.error('[api/userCategories.get] supabase error:', error)
-    // If row not found supabase returns 406? but standardize to 404
-    throw createError({ statusCode: 404, statusMessage: 'Task not found' })
+    throw createError({ statusCode: 500, statusMessage: 'Failed to fetch user categories' })
   }
 
   return data

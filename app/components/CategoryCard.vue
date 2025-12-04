@@ -1,11 +1,15 @@
 <template>
-    <div class="w-30 h-50 perspective-1000 flex justify-center items-center">
+    <div class="w-30 h-50 perspective-1000 flex justify-center items-center cursor-pointer" @click="handleClick">
         <div
             class="w-full h-full transition-transform duration-700 transform-style-3d flex justify-center items-center"
             :style="{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }"
         >
             <!-- Front of card (existing content) -->
-            <div class="w-30 h-50 rounded-2xl flex flex-col justify-between items-center p-4 backface-hidden" :style="{ backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none', backgroundSize: 'cover' }">
+            <div 
+                class="w-30 h-50 rounded-2xl flex flex-col justify-between items-center p-4 backface-hidden hover:scale-105 transition-transform" 
+                :class="{ 'ring-2 ring-orange-500 ring-offset-2': props.isActive }"
+                :style="{ backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none', backgroundSize: 'cover' }"
+            >
                 <div></div>
                 <h2 class="text-md text-center font-semibold mb-2">{{ categoryName }}</h2>
                 <div class="w-full flex justify-center gap-2 mt-2">
@@ -50,11 +54,23 @@ const props = defineProps({
     category: {
         type: Object,
         required: true
+    },
+    isActive: {
+        type: Boolean,
+        default: false
     }
 })
 
+const emit = defineEmits(['click'])
+
 const input = ref("")
 const isFlipped = ref(false)
+
+function handleClick() {
+    if (!isFlipped.value) {
+        emit('click', props.category.name, categoryName.value)
+    }
+}
 
 const categoryName = computed(() => {
     return userCategories.value[`${props.category.name}_name`] || props.category.name

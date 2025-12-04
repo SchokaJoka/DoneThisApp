@@ -147,7 +147,7 @@ function startRecording() {
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(stream => {
       mediaStream.value = stream
-      const type = supportedType()
+      const type = 'audio/webm;codecs=opus' //supportedType()
       const mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined)
       chunks.length = 0
       
