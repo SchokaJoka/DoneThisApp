@@ -132,8 +132,15 @@ async function handleUserAudio() {
 }
 
 function supportedType() {
-  // Prefer webm/opus; fallback to audio/webm
-  const candidates = ['audio/webm;codecs=opus', 'audio/webm']
+  // Check supported formats in order of preference
+  // Safari/iOS supports mp4/m4a, Chrome/Firefox support webm
+  const candidates = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/mp4',
+    'audio/ogg;codecs=opus',
+    'audio/ogg'
+  ]
   for (const c of candidates) {
     if (MediaRecorder.isTypeSupported?.(c)) return c
   }
@@ -147,7 +154,8 @@ function startRecording() {
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then(stream => {
       mediaStream.value = stream
-      const type = 'audio/webm;codecs=opus' //supportedType()
+      const type = supportedType()
+      console.log('Selected audio format:', type || 'browser default')
       const mr = new MediaRecorder(stream, type ? { mimeType: type } : undefined)
       chunks.length = 0
       
@@ -195,8 +203,17 @@ async function uploadAudio() {
   }
 
   try {
-    // Create file path
-    const fileExt = audioBlob.value.type.includes('webm') ? 'webm' : 'ogg'
+    // Determine file extension based on MIME type
+    const mimeType = audioBlob.value.type
+    let fileExt = 'webm'
+    if (mimeType.includes('mp4') || mimeType.includes('m4a')) {
+      fileExt = 'm4a'
+    } else if (mimeType.includes('ogg')) {
+      fileExt = 'ogg'
+    } else if (mimeType.includes('webm')) {
+      fileExt = 'webm'
+    }
+    
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
     const fileName = `${timestamp}.${fileExt}`
     const filePath = `${userId.value}/recordings/${fileName}`
