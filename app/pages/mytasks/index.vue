@@ -45,7 +45,7 @@
           <div 
             v-for="(task, index) in filteredTasks" 
             :key="task.id" 
-            class="w-full flex justify-center items-start sticky top-16 -bottom-110 mt-[100px] first:mt-0"
+            class="w-full flex justify-center items-start sticky top-16 -bottom-115 mt-64 first:mt-0"
           >
               <TaskCard 
               :taskId="task.id" 

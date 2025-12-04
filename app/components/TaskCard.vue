@@ -175,11 +175,11 @@ const props = defineProps({
     },
     minRotation: {
         type: Number,
-        default: -6
+        default: -4
     },
     maxRotation: {
         type: Number,
-        default: 6
+        default: 4
     }
 })
 
