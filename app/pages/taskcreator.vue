@@ -29,7 +29,7 @@ const displayedText = ref('')
 const isTyping = ref(false)
 
 const userTask = ref({
-  showDraft: false,
+  showDraft: true,
   name: '',
   description: '',
   categoryName: '',
@@ -421,26 +421,25 @@ function addTask(task) {
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 -translate-y-4"
     >
-      <div v-if="userTask.showDraft" class="sticky top-0 z-30 w-full h-full  flex justify-center items-start px-4 pt-4">
-        <div class="w-[360px] h-[550px] flex flex-col justify-start items-start bg-bg-surface p-4 rounded-[21px] gap-4" :style="{ backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : `url()`, backgroundSize: 'cover', backgroundPosition: 'center' }">
-          <div class="w-full flex flex-row justify-between items-center">
-          <div>
-            <select v-model="userTask.categoryUserName" class="h-[40px] w-fit px-4 rounded-lg bg-white border border-gray-300">
-              <option value="" disabled selected>Kategorie</option>
-              <option v-for="(name, key) in categoryOptions" :key="key" :value="name">
-                {{ name }}
-              </option>
-            </select>
-          </div>
-          
-          <div>
-            <input 
-              type="datetime-local"
-              v-model="dateTimeLocal"
-              class="h-[40px] w-full px-3 rounded-lg bg-white border border-gray-300"
-            />
-          </div>
-
+      <div v-if="userTask.showDraft" class="sticky top-0 z-30 w-full max-h-[50vh]  flex justify-center items-start px-4 pt-4">
+        <div class="w-[360px] flex flex-col justify-start items-start bg-bg-surface p-4 rounded-[21px] gap-4 overflow-hidden" :style="{ backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : `url()`, backgroundSize: 'cover', backgroundPosition: 'center' }">
+          <div class="w-full flex flex-row flex-wrap justify-between items-center gap-2">
+            <div class="">
+              <select v-model="userTask.categoryUserName" class="h-10 px-4 rounded-lg bg-bg-fill text-sm">
+                <option value="" disabled selected>Kategorie</option>
+                <option v-for="(name, key) in categoryOptions" :key="key" :value="name">
+                  {{ name }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="flex-shrink-0">
+              <input 
+                type="datetime-local"
+                v-model="dateTimeLocal"
+                class="h-10 px-2 rounded-lg bg-bg-fill text-sm max-w-[180px]"
+              />
+            </div>
           </div>
         
           <div class="w-full">
@@ -448,7 +447,7 @@ function addTask(task) {
               type="text" 
               v-model="userTask.name" 
               placeholder="Name" 
-              class="w-full px-4 py-3 rounded-lg text-2xl font-bold bg-bg-fill border-none outline-none text-text-primary"
+              class="w-full px-4 py-2 rounded-lg text-2xl font-bold bg-bg-fill border-none outline-none placeholder-text-primary"
               style="font-family: var(--font-primary);"
             /> 
           </div>
@@ -457,7 +456,7 @@ function addTask(task) {
               v-model="userTask.description" 
               placeholder="Description" 
               rows="4"
-              class="w-full px-4 py-3 text-base bg-transparent border-none outline-none resize-none placeholder-gray-400"
+              class="w-full px-4 py-3 text-base bg-bg-fill rounded-lg border-none placeholder-text-primary"
               style="font-family: var(--font-secondary);"
             />
           </div>

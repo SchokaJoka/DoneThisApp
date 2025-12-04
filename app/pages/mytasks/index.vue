@@ -41,7 +41,7 @@
           <div 
             v-for="(task, index) in filteredTasks" 
             :key="task.id" 
-            class="w-full flex justify-center items-start sticky top-12 -bottom-115 mt-64 first:mt-0"
+            class="w-full flex justify-center items-start sticky top-16 mt-64 first:mt-0"
           >
               <TaskCard 
               :taskId="task.id" 
@@ -50,7 +50,7 @@
           <div class="h-[60vh]"/>
         </div>
         <div v-else class="w-full flex justify-center items-center snap-start">
-          <h1 class="text-text-primary text-center">Keine Aufgaben in {{ userCategoryName }}.</h1>
+          <h1 class="text-text-primary text-center">Keine Aufgaben vorhanden</h1>
         </div>
       </Transition>
     </div>
