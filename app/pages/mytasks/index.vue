@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-bg-surface w-screen">
+  <div class="bg-bg-surface w-screen ">
     <div class="flex flex-col w-full h-fit p-4 gap-4">
       <div class="w-full">
         <p class="overview-label text-text-secondary">Kategorien</p>
@@ -22,16 +22,12 @@
 
     </div>
   </div>
-
   
-  <div class="flex flex-col w-full h-fit p-4 gap-4 sticky top-0">
-    <div class="w-full">
-      <p class="overview-label text-text-primary">{{ userCategoryName }}</p>
-    </div>
-  </div>
-
   <div class="p-8">
     <div class="w-full">
+      <div class="w-full flex flex-row h-fit justify-center mb-4 items-center sticky top-2 z-30">
+        <p class="overview-label text-text-primary">{{ userCategoryName }}</p>
+      </div>
       <Transition
         mode="out-in"
         enter-active-class="transition-all duration-700 ease-out"
@@ -45,7 +41,7 @@
           <div 
             v-for="(task, index) in filteredTasks" 
             :key="task.id" 
-            class="w-full flex justify-center items-start sticky top-16 -bottom-115 mt-64 first:mt-0"
+            class="w-full flex justify-center items-start sticky top-12 -bottom-115 mt-64 first:mt-0"
           >
               <TaskCard 
               :taskId="task.id" 
