@@ -208,9 +208,10 @@ onMounted(async () => {
 
 // Computed property to get the background image URL
 const backgroundImageUrl = computed(() => {
-    if (!category.value?.name || !group.value?.id) return ''
+    const randomNum = Math.floor(Math.random() * 20) + 1
+    if (!category.value?.name || !group.value?.id) return '/img/default.webp'
     try {
-        return `/img/bg-card/${group.value.id}/${category.value.name}.webp`
+        return `/img/bg-card/${group.value.id}/${category.value.name}-${randomNum}.png`
     } catch (e) {
         console.error('Error loading background image:', e)
         return ''

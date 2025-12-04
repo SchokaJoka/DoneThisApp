@@ -425,7 +425,7 @@ function addTask(task) {
         <div class="w-[360px] flex flex-col justify-start items-start bg-bg-surface p-4 rounded-[21px] gap-4 overflow-hidden" :style="{ backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : `url()`, backgroundSize: 'cover', backgroundPosition: 'center' }">
           <div class="w-full flex flex-row flex-wrap justify-between items-center gap-2">
             <div class="">
-              <select v-model="userTask.categoryUserName" class="h-10 px-4 rounded-lg bg-bg-fill text-sm">
+              <select v-model="userTask.categoryUserName" class="h-10 px-4 rounded-lg bg-bg-fill text-text-primary">
                 <option value="" disabled selected>Kategorie</option>
                 <option v-for="(name, key) in categoryOptions" :key="key" :value="name">
                   {{ name }}
