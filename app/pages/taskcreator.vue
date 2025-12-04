@@ -192,16 +192,16 @@ async function handleUserAudio() {
     return
   }
 
-  draftTask = {
+  const draftTask = ref({
     name: userTask.value.name,
     description: userTask.value.description,
     category: userTask.value.categoryName,
     due_date: userTask.value.due_date,
     due_time: userTask.value.due_time,
     type: userTask.value.groupName
-  }
+  })
 
-  assistantResponse.value = await getAssistantDraft(userTranscript.value, userTask.value, userCategories.value, groups.value)
+  assistantResponse.value = await getAssistantDraft(userTranscript.value, draftTask.value, userCategories.value, groups.value)
 
   assistantDraft.value = assistantResponse.value.draftResponse.task
   assistantMessage.value.push(assistantResponse.value.draftResponse.aiMessage)
