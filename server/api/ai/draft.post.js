@@ -30,8 +30,8 @@ export default defineEventHandler(async (event) => {
     You receive:
     - currentDraft: a partial task object (may be empty)
     - userTranscript: the user's spoken input in an array of strings
-    - userCategories: an array of categories provided by the user to choose from
-    - groups: an array of group names provided by the user to choose from
+    - categories: an array of categories provided by the user to choose from
+    - types: an array of group names provided by the user to choose from
 
     Your job is to:
     1) Merge any new concrete details from userTranscript into currentDraft.
@@ -42,15 +42,15 @@ export default defineEventHandler(async (event) => {
         "due_date": string|null,     // ISO YYYY-MM-DD or null if no exact date
         "due_time": string|null,     // HH:MM:SS (24h) or null if no exact time
         "description": string|null,  // 1-2 concise sentences
-        "group": string|null,        // from the input provided groups which match the best or null
-        "subtasks": object|null      // null here, handled separately
+        "type": string|null,        // from the input provided types which matches the best
+        "subtasks": array|null      // null here, handled separately
       }
-    3) Extract any steps, checkpoints, or subtasks mentioned into an object of subtasks:
-      {
+    3) Extract any steps, checkpoints, or subtasks mentioned into an array of subtasks:
+      [
         "subtask_1": string,
         "subtask_2": string,
         ...
-      }
+      ]
     4) Identify any fields that are still missing or weakly specified.
     5) Ask ONE clear follow-up question to help complete the task. If everything looks complete, ask a short confirmation question.
 
@@ -58,8 +58,8 @@ export default defineEventHandler(async (event) => {
     - Only set due_date when an exact date is mentioned; otherwise null.
     - If user mentions steps, checkpoints, or subtasks, extract them into the subtasks array as strings.
     - Use cheerful and motivating language in your follow-up question.
-    - If userCategories is non-empty, choose the best matching category; otherwise set to null.
-    - If groups is non-empty, choose the best matching group; otherwise set to null.
+    - If categories is non-empty, choose the best matching category; otherwise set to null.
+    - If types is non-empty, choose the best matching group. you must choose one of the provided groups. Do not set to null. do not invent new types
     - Always respond in JSON format as specified below.
     - Do not invent facts or subtasks. Use only provided information.
     - Write messages in the same language as the user_transcript but German is mostly used.
@@ -72,7 +72,7 @@ export default defineEventHandler(async (event) => {
         due_date,
         due_time,
         description,
-        group
+        type
       },
       "subtasks": { 
         "subtask_1": string,
@@ -86,24 +86,34 @@ export default defineEventHandler(async (event) => {
   const input = {
     system_prompt: systemPrompt,
     prompt: JSON.stringify({ 
-      currentDraft: body.draftTask ?? null, 
+      currentDraft: body.existingDraft ?? null, 
       userTranscript: body.transcript,
-      userCategories: body.userCategories ?? [],
-      groups: body.groups ?? []
+      categories: body.categories ?? [],
+      types: body.types ?? []
     }) 
   }
 
   const output = await replicate.run('openai/gpt-4o-mini', { input })
   
-  const response = output.join('')
+  let response = output.join('')
 
   console.log('[api/ai/draft.post.js] response: ', response)
+
+  // Strip markdown code fences if present (```json ... ``` or ``` ... ```)
+  response = response.trim()
+  if (response.startsWith('```')) {
+    // Remove opening fence (```json or ```)
+    response = response.replace(/^```(?:json)?\s*\n?/, '')
+    // Remove closing fence
+    response = response.replace(/\n?```\s*$/, '')
+  }
 
   let draftResponse
   
   try {
     draftResponse = JSON.parse(response)
-  } catch {
+  } catch (e) {
+    console.error('[api/ai/draft.post.js] JSON parse error:', e.message)
     draftResponse = {
       task: { name: 'Not Specified', due_date: null, description: 'Not Speficied', subtasks: null },
       missingFields: [],

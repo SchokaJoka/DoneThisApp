@@ -5,7 +5,7 @@
             :style="{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }"
         >
             <!-- Front of card -->
-            <div class="w-[360px] h-[550px] backface-hidden flex flex-col justify-center items-center bg-cover bg-center rounded-2xl bg-bg-surface" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
+            <div class="w-[360px] h-[550px] backface-hidden flex flex-col justify-center items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
 
                 <div class="w-full h-full pt-4 px-6 flex flex-col items-start">
                     <div class="w-full  pb-12 flex justify-between self-stretch">

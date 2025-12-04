@@ -31,16 +31,33 @@
   </div>
 
   <div class="p-8">
-    <div class="w-full flex flex-col gap-8">
-      <div
-        v-for="task in filteredTasks" :key="task.id" class="w-full min-h-[70dvh] flex justify-center items-center sticky top-16">
-        <TaskCard 
-        :taskId="task.id" 
-        :enable-rotation="false" />
-      </div>
-
+    <div class="w-full">
+      <Transition
+        mode="out-in"
+        enter-active-class="transition-all duration-700 ease-out"
+        enter-from-class="opacity-0 translate-y-4"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-4"
+      >
+        <div v-if="filteredTasks?.length > 0" :key="selectedCategory" class="flex flex-col">
+          <div 
+            v-for="(task, index) in filteredTasks" 
+            :key="task.id" 
+            class="w-full flex justify-center items-start sticky top-16 -bottom-110 mt-[100px] first:mt-0"
+          >
+              <TaskCard 
+              :taskId="task.id" 
+              :enable-rotation="true" />
+          </div>
+          <div class="h-[60vh]"/>
+        </div>
+        <div v-else class="w-full flex justify-center items-center snap-start">
+          <h1 class="text-text-primary text-center">Keine Aufgaben in {{ userCategoryName }}.</h1>
+        </div>
+      </Transition>
     </div>
-    <div class="snap-start snap-always h-[75vh] w-full sticky top-16 flex flex-col items-center"></div>
   </div>
 </template>
     
@@ -52,9 +69,9 @@ const { categories } = useCategories()
 const selectedCategory = ref('Alle Aufgaben')
 const userCategoryName = ref('Alle Aufgaben')
 
-function selectCategory(categoryName, userCategoryName) {
+function selectCategory(categoryName, usCaNa) {
   selectedCategory.value = categoryName
-  userCategoryName.value = userCategoryName
+  userCategoryName.value = usCaNa
 }
 
 const filteredTasks = computed(() => {

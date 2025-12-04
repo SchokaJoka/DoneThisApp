@@ -6,8 +6,8 @@
         >
             <!-- Front of card (existing content) -->
             <div 
-                class="w-30 h-50 rounded-2xl flex flex-col justify-between items-center p-4 backface-hidden hover:scale-105 transition-transform" 
-                :class="{ 'ring-2 ring-orange-500 ring-offset-2': props.isActive }"
+                class="w-30 h-50 rounded-2xl flex flex-col justify-between items-center p-4 backface-hidden hover:scale-105 transition-all duration-300 ring-offset-bg-surface"
+                :class="props.isActive ? 'ring-4 ring-btn-primary ring-offset-4' : 'ring-0 ring-transparent ring-offset-0'"
                 :style="{ backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none', backgroundSize: 'cover' }"
             >
                 <div></div>
@@ -31,7 +31,7 @@
             </div>
 
             <!-- Back of card (Edit form) -->
-            <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start p-2 rounded-2xl" :style="{ transform: 'rotateY(180deg)', backgroundColor: category.color }">
+            <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start p-2 rounded-2xl ring-offset-bg-surface" :style="{ transform: 'rotateY(180deg)', backgroundColor: category.color }" :class="props.isActive ? 'ring-4 ring-btn-primary ring-offset-4' : 'ring-0 ring-transparent ring-offset-0'">
                 <div class="w-full">
                     <div class="mb-3 w-full">
                         <input v-model="input" type="text" class="w-full p-2 bg-bg border border-border rounded-lg" />

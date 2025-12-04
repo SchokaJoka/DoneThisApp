@@ -2,6 +2,7 @@
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
+const { categories } = useCategories()
 const { userCategories, getUserCategories } = useUserCategories()
 const { groups } = useGroups()
 
@@ -27,40 +28,64 @@ const assistantMessage = ref(['Hallo! Erzähle mir von deiner Aufgabe. Ich helfe
 const displayedText = ref('')
 const isTyping = ref(false)
 
-const userTask = {
-  showDraft: ref(false),
-  name: ref(''),
-  description: ref(''),
-  category_id: ref(''),
-  group_id: ref(''),
-  due_date: ref(''),
-  due_time: ref(''),
-  status: ref(0)
-}
+const userTask = ref({
+  showDraft: false,
+  name: '',
+  description: '',
+  categoryName: '',
+  categoryUserName: '',
+  groupName: '',
+  group_id: '',
+  category_id: '',
+  due_date: '',
+  due_time: '',
+  status: 0
+})
 
-const categoryDropdownOpen = ref(false)
+// Computed property to get the background image URL
+const backgroundImageUrl = computed(() => {
+  if (userTask.value?.group_id && userTask.value?.categoryName) {
+    return `/img/bg-card/${userTask.value.group_id}/${userTask.value.categoryName}.webp`
+  } else if (userTask.value?.categoryName) {
+    return `/img/bg-card/7fe28093-27dd-489b-b089-56109b2b4d14/${userTask.value.categoryName}.webp`
+  }
+  return '/img/default.webp'
+})
+
+
+// Extract only color_name fields for the category dropdown
+const categoryOptions = computed(() => {
+  const options = {}
+  if (userCategories.value) {
+    Object.keys(userCategories.value).forEach(key => {
+      if (key.endsWith('_name')) {
+        const colorKey = key.replace('_name', '')
+        options[colorKey] = userCategories.value[key]
+      }
+    })
+  }
+  return options
+})
 
 // Combined datetime for the input
 const dateTimeLocal = computed({
   get() {
-    if (!userTask.due_date.value) return ''
-    const date = userTask.due_date.value
-    const time = userTask.due_time.value || '00:00'
+    if (!userTask.value.due_date) return ''
+    const date = userTask.value.due_date
+    const time = userTask.value.due_time || '00:00'
     return `${date}T${time}`
   },
   set(value) {
     if (!value) {
-      userTask.due_date.value = ''
-      userTask.due_time.value = ''
+      userTask.value.due_date = ''
+      userTask.value.due_time = ''
       return
     }
     const [date, time] = value.split('T')
-    userTask.due_date.value = date
-    userTask.due_time.value = time
+    userTask.value.due_date = date
+    userTask.value.due_time = time
   }
 })
-
-
 
 // Typing animation function
 function typeText(text, speed = 25) {
@@ -90,6 +115,59 @@ watch(() => assistantMessage.value.length, async (newLength, oldLength) => {
   }
 })
 
+// Watch for groupName changes and fetch the group_id
+watch(() => userTask.value.groupName, async (newGroupName) => {
+  if (!newGroupName) {
+    userTask.value.group_id = ''
+    return
+  }
+  try {
+    const groupId = await $fetch(`/api/groups/${encodeURIComponent(newGroupName)}`)
+    userTask.value.group_id = groupId || ''
+  } catch (e) {
+    console.error('Failed to fetch group_id for groupName:', newGroupName, e)
+    userTask.value.group_id = ''
+  }
+
+  console.log('Updated group_id to:', userTask.value)
+})
+
+// Watch for categoryUserName changes and update categoryName
+watch(() => userTask.value.categoryUserName, (newCategoryUserName) => {
+  if (!newCategoryUserName) {
+    userTask.value.categoryName = ''
+    return
+  }
+  
+  // Find the color key that matches the category name in categoryOptions
+  const colorKey = Object.entries(categoryOptions.value).find(
+    ([key, name]) => name.toLowerCase() === newCategoryUserName.toLowerCase()
+  )?.[0]
+  
+  if (!colorKey) {
+    userTask.value.categoryName = ''
+    console.log('No matching color key found for:', newCategoryUserName)
+    return
+  }
+  
+  userTask.value.categoryName = colorKey
+  console.log('Updated categoryName to:', colorKey)
+})
+
+// Watch for categoryName changes and update category_id
+watch(() => userTask.value.categoryName, (newCategoryName) => {
+  if (!newCategoryName) {
+    userTask.value.category_id = ''
+    return
+  }
+  
+  // Find the category ID from categories using the color key
+  const category = categories.value.find(cat => cat.name === newCategoryName)
+  userTask.value.category_id = category?.id || ''
+  
+  console.log('Updated category_id to:', userTask.value.category_id)
+})
+
 onMounted(async () => {
   if (assistantMessage.value.length > 0) {
     await typeText(assistantMessage.value[0])
@@ -114,19 +192,28 @@ async function handleUserAudio() {
     return
   }
 
+  draftTask = {
+    name: userTask.value.name,
+    description: userTask.value.description,
+    category: userTask.value.categoryName,
+    due_date: userTask.value.due_date,
+    due_time: userTask.value.due_time,
+    type: userTask.value.groupName
+  }
+
   assistantResponse.value = await getAssistantDraft(userTranscript.value, userTask.value, userCategories.value, groups.value)
-  console.log('Assistant response: ', assistantResponse.value)
 
   assistantDraft.value = assistantResponse.value.draftResponse.task
   assistantMessage.value.push(assistantResponse.value.draftResponse.aiMessage)
 
 
-  userTask.name.value = assistantDraft.value.name || ''
-  userTask.description.value = assistantDraft.value.description || ''
-  userTask.group_id.value = assistantDraft.value.category || ''  // AI chooses the group
-  userTask.due_date.value = assistantDraft.value.due_date || ''
-  userTask.due_time.value = assistantDraft.value.due_time || ''
-  userTask.showDraft.value = true
+  userTask.value.categoryUserName = assistantDraft.value.category || ''
+  userTask.value.description = assistantDraft.value.description || ''
+  userTask.value.due_date = assistantDraft.value.due_date || ''
+  userTask.value.due_time = assistantDraft.value.due_time || ''
+  userTask.value.name = assistantDraft.value.name || ''
+  userTask.value.groupName = assistantDraft.value.type || ''
+  userTask.value.showDraft = true
 
   return
 }
@@ -173,7 +260,7 @@ function startRecording() {
       isRecording.value = true
     })
     .catch(e => {
-      errorMsg.value = e?.message || 'Microphone permission denied or unsupported browser.'
+      errorMsg.value = e?.message || 'Microphone permission denied  -or unsupported browser.'
       console.error('getUserMedia error:', e)
     })
 }
@@ -277,13 +364,31 @@ async function transcribeAudio(url) {
 }
 
 async function getAssistantDraft(userTranscript, existingDraft, userCategories, groups) {
+  // Extract only the color_name fields from userCategories
+  const colorNames = {}
+  if (userCategories) {
+    Object.keys(userCategories).forEach(key => {
+      if (key.endsWith('_name')) {
+        // Convert key like 'yellow_name' to 'yellow'
+        const colorKey = key.replace('_name', '')
+        colorNames[colorKey] = userCategories[key]
+      }
+    })
+  }
+
+  // Extract only title and description from groups
+  const groupsSimple = groups?.map(g => ({
+    title: g.title,
+    description: g.description
+  })) || []
+
   const data = await $fetch('/api/ai/draft', {
     method: 'POST',
     body: {
       transcript: userTranscript,
       existingDraft: JSON.stringify(existingDraft),
-      userCategories: JSON.stringify(userCategories), 
-      groups: JSON.stringify(groups),
+      categories: JSON.stringify(colorNames), 
+      types: JSON.stringify(groupsSimple),
     },
   })
 
@@ -298,6 +403,11 @@ onBeforeUnmount(() => {
   } catch { }
 })
 
+function addTask(task) {
+  const { createTask } = useTasks()
+  createTask(userTask.value)
+  navigateTo('/mytasks')
+}
 </script>
 
 <template>
@@ -311,13 +421,13 @@ onBeforeUnmount(() => {
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 -translate-y-4"
     >
-      <div v-if="userTask.showDraft.value" class="sticky top-0 z-30 w-full h-full  flex justify-center items-start px-4 pt-4">
-        <div class="w-full max-w-[500px] flex flex-col justify-start items-start bg-bg-surface p-[11px] rounded-[21px] gap-4">
+      <div v-if="userTask.showDraft" class="sticky top-0 z-30 w-full h-full  flex justify-center items-start px-4 pt-4">
+        <div class="w-[360px] h-[550px] flex flex-col justify-start items-start bg-bg-surface p-4 rounded-[21px] gap-4" :style="{ backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : `url()`, backgroundSize: 'cover', backgroundPosition: 'center' }">
           <div class="w-full flex flex-row justify-between items-center">
           <div>
-            <select v-model="userTask.category_id.value" class="h-[40px] px-3 rounded-lg bg-white border border-gray-300">
+            <select v-model="userTask.categoryUserName" class="h-[40px] w-fit px-4 rounded-lg bg-white border border-gray-300">
               <option value="" disabled selected>Kategorie</option>
-              <option v-for="(name, key) in userCategories" :key="key" :value="key">
+              <option v-for="(name, key) in categoryOptions" :key="key" :value="name">
                 {{ name }}
               </option>
             </select>
@@ -327,7 +437,7 @@ onBeforeUnmount(() => {
             <input 
               type="datetime-local"
               v-model="dateTimeLocal"
-              class="h-[40px] px-3 rounded-lg bg-white border border-gray-300"
+              class="h-[40px] w-full px-3 rounded-lg bg-white border border-gray-300"
             />
           </div>
 
@@ -336,19 +446,19 @@ onBeforeUnmount(() => {
           <div class="w-full">
             <input 
               type="text" 
-              v-model="userTask.name.value" 
+              v-model="userTask.name" 
               placeholder="Name" 
-              class="w-full px-4 py-3 text-2xl font-bold bg-transparent border-none outline-none placeholder-gray-400"
-              style="font-family: 'Baloo Chettan 2', sans-serif;"
+              class="w-full px-4 py-3 rounded-lg text-2xl font-bold bg-bg-fill border-none outline-none text-text-primary"
+              style="font-family: var(--font-primary);"
             /> 
           </div>
           <div class="w-full">
             <textarea 
-              v-model="userTask.description.value" 
+              v-model="userTask.description" 
               placeholder="Description" 
               rows="4"
               class="w-full px-4 py-3 text-base bg-transparent border-none outline-none resize-none placeholder-gray-400"
-              style="font-family: 'Roboto', sans-serif;"
+              style="font-family: var(--font-secondary);"
             />
           </div>
         </div>
@@ -356,7 +466,7 @@ onBeforeUnmount(() => {
     </Transition>
 
 
-    <div v-if="!userTask.showDraft.value" class="flex flex-col items-center gap-6">
+    <div v-if="!userTask.showDraft" class="flex flex-col items-center gap-6">
         <div class="max-w-[500px] max-h-[50vh]">
           <Lottie 
             name="playing-cards"
@@ -419,21 +529,20 @@ onBeforeUnmount(() => {
       move-class="transition-transform duration-200 ease-in-out"
     >
       <button 
-        v-if="!userTask.showDraft.value"
-        key="manual-btn"
-        @click="userTask.showDraft.value = true"
+        v-if="!userTask.showDraft"
+        @click="userTask.showDraft = true"
         class="h-16 px-6 flex items-center justify-center bg-btn-primary hover:bg-btn-primary-hover text-text-secondary rounded-lg transition-all font-medium shadow-md"
       >
         Manual Creation
       </button>
       
       <button 
-        key="mic-btn"
-        @click="isRecording ? stopRecording() : startRecording()"
-        :class="[
-          'flex items-center justify-center w-16 h-16 rounded-full transition-all shadow-lg',
-          isRecording ? 'bg-accent hover:bg-accent-hover animate-pulse text-white' : 'bg-btn-primary hover:bg-btn-primary-hover text-text-secondary'
-        ]"
+      key="mic-btn"
+      @click="isRecording ? stopRecording() : startRecording()"
+      :class="[
+        'flex items-center justify-center w-16 h-16 rounded-full transition-all shadow-lg',
+        isRecording ? 'bg-accent hover:bg-accent-hover animate-pulse text-white' : 'bg-btn-primary hover:bg-btn-primary-hover text-text-secondary'
+      ]"
       >
         <template v-if="!isRecording">
           <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
@@ -445,6 +554,15 @@ onBeforeUnmount(() => {
           <div class="w-3 h-3 bg-white rounded-full"></div>
         </template>
       </button>
-    </TransitionGroup>
+      <button 
+        v-if="userTask.showDraft"
+        @click="addTask(userTask)"
+        class="h-16 px-6 flex items-center justify-center bg-btn-primary hover:bg-btn-primary-hover text-text-secondary rounded-lg transition-all font-medium shadow-md"
+      >
+        Add
+      </button>
+    
+    
+  </TransitionGroup>
   </div>
 </template>

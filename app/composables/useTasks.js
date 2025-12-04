@@ -47,7 +47,9 @@ export function useTasks() {
         description: properties.description || null,
         due_date: properties.due_date || null,
         due_time: properties.due_time || null,
-        subtasks: properties.subtasks || null
+        category_id: properties.category_id || null,
+        group_id: properties.group_id || 'e4418205-e9e9-4753-8d4e-e639e8827f2d', // default to "actions" group
+        status: properties.status || 0,
       }
 
       const created = await $fetch('/api/tasks', {

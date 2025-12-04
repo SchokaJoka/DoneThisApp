@@ -3,13 +3,13 @@ import { serverSupabaseClient } from '#supabase/server'
 export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient(event)
 
-  const { groupId } = event.context.params || {}
-  if  (!groupId) throw createError({ statusCode: 400, statusMessage: 'groupId is required' })
+  const { groupName } = event.context.params || {}
+  if  (!groupName) throw createError({ statusCode: 400, statusMessage: 'groupId is required' })
 
   const { data, error } = await client
     .from('groups')
     .select('*')
-    .eq('id', groupId)
+    .eq('title', groupName)
     .single()
 
   if (error) {
@@ -18,5 +18,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'groups not found' })
   }
 
-  return data
+  console.log('[api/groups.[groupName].get] data:', data)
+
+  return data.id
 })
