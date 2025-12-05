@@ -5,54 +5,46 @@
             :style="{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }"
         >
             <!-- Front of card -->
-            <div class="w-full max-w-[370px] h-[600px] max-h-[75vh] backface-hidden flex flex-col justify-center items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
+            <div class="w-full max-w-[370px] h-[600px] max-h-[75vh] backface-hidden flex flex-col justify-between items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
 
-                <!-- Header -->
-                <div class="w-full pt-4 px-6 pb-8 flex justify-between">
-                    <div class="flex">
-                        <span>
-                            {{ userCategoryName }}
-                        </span>
+                <div class="w-full h-full pt-4 px-6 flex flex-col items-start overflow-hidden">
+                    <div class="w-full h-fit pb-12 flex justify-between self-stretch shrink-0">
+                        <div class="flex">
+                            <span>
+                                {{ userCategoryName }}
+                            </span>
+                        </div>
+                        <div v-if="task.due_date" class="flex w-full justify-end">
+                            <span>
+                                {{ formatDate(task.due_date) }}
+                                <span v-if="task.due_time"> {{ formatTime(task.due_time) }}</span>
+                            </span>
+                        </div>
                     </div>
-                    <div v-if="task.due_date" class="flex justify-end">
-                        <span>
-                            {{ formatDate(task.due_date) }}
-                            <span v-if="task.due_time"> {{ formatTime(task.due_time) }}</span>
-                        </span>
+                    <div class="w-full h-fit pb-4 flex flex-col gap-4 items-start shrink-0">
+                        <div class="w-full">
+                            <h1>
+                            {{ task.name }}
+                            </h1>
+                        </div>
+                        <div class="w-full">
+                            <p>
+                            {{ task.description }}
+                            </p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Title & Description -->
-                <div class="w-full px-6 pb-4 flex flex-col gap-4">
-                    <div class="w-full">
-                        <h1>{{ task.name }}</h1>
-                    </div>
-                    <div class="w-full">
-                        <p>{{ task.description }}</p>
-                    </div>
-                </div>
-
-                <!-- Subtasks scrollable area - with explicit max-height -->
-                <div 
-                    v-if="subTasks && subTasks.length > 0" 
-                    ref="subtaskContainer"
-                    class="subtask-scroll w-full px-6 pb-4 overflow-y-auto"
-                    @wheel.stop
-                    @touchstart.stop
-                    @touchmove.stop
-                >
-                    <div class="flex flex-col gap-2">
+                    <div v-if="subTasks && subTasks.length > 0" class="w-full min-h-0 overflow-y-scroll flex flex-col items-start gap-1 pb-4">
                         <div v-for="subtask in subTasks" :key="subtask.id" class="w-full p-4 rounded-lg bg-bg flex items-center gap-2">
                             <input type="checkbox" :checked="subtask.status" disabled class="w-4 h-4 shrink-0"/>
                             <span :class="{ 'line-through text-text-secondary': subtask.status }">
-                                {{ subtask.name }}
+                            {{ subtask.name }}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Buttons - fixed at bottom -->
-                <div class="card-buttons absolute bottom-0 left-0 right-0 w-full flex justify-center items-center gap-4 pb-4 px-4 bg-gradient-to-t from-bg-fill via-bg-fill to-transparent pt-8">
+                <div class="w-full flex justify-center items-center gap-4 pb-4 px-4 self-stretch">
                     <button @click.stop="editTask" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
                         <div class="size-6 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
@@ -184,8 +176,6 @@ const { loadingGroups, errorGroups, groups, getGroups, getGroup} = useGroups()
 const { categories } = useCategories()
 const { userCategories } = useUserCategories()
 const { getSubTasks, subTasks } = useSubTasks()
-
-const subtaskContainer = ref(null)
 
 const props = defineProps({
     taskId: {
@@ -363,15 +353,5 @@ function hashToUnit(s) {
 
 .backface-hidden {
     backface-visibility: hidden;
-}
-
-.subtask-scroll {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    max-height: 200px; /* Fixed max height for subtask scroll area */
-}
-
-.card-front {
-    position: relative;
 }
 </style>
