@@ -7,35 +7,52 @@
             <!-- Front of card -->
             <div class="w-full max-w-[360px] h-[550px] max-h-[75vh] backface-hidden flex flex-col justify-center items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
 
-                <div class="w-full h-full pt-4 px-6 flex flex-col items-start">
-                    <div class="w-full  pb-12 flex justify-between self-stretch">
-                        <div class="flex">
-                            <span>
-                                {{ userCategoryName }}
-                            </span>
-                        </div>
-                        <div v-if="task.due_date" class="flex w-full justify-end">
-                            <span>
-                                {{ formatDate(task.due_date) }}
-                                <span v-if="task.due_time"> {{ formatTime(task.due_time) }}</span>
-                            </span>
-                        </div>
+                <!-- Header -->
+                <div class="w-full pt-4 px-6 pb-8 flex justify-between">
+                    <div class="flex">
+                        <span>
+                            {{ userCategoryName }}
+                        </span>
                     </div>
-                    <div class="w-full flex flex-col gap-4 items-start">
-                        <div class="w-full">
-                            <h1>
-                            {{ task.name }}
-                            </h1>
-                        </div>
-                        <div class="w-full">
-                            <p>
-                            {{ task.description }}
-                            </p>
+                    <div v-if="task.due_date" class="flex justify-end">
+                        <span>
+                            {{ formatDate(task.due_date) }}
+                            <span v-if="task.due_time"> {{ formatTime(task.due_time) }}</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Title & Description -->
+                <div class="w-full px-6 pb-4 flex flex-col gap-4">
+                    <div class="w-full">
+                        <h1>{{ task.name }}</h1>
+                    </div>
+                    <div class="w-full">
+                        <p>{{ task.description }}</p>
+                    </div>
+                </div>
+
+                <!-- Subtasks scrollable area - with explicit max-height -->
+                <div 
+                    v-if="subTasks && subTasks.length > 0" 
+                    ref="subtaskContainer"
+                    class="subtask-scroll w-full px-6 pb-4 overflow-y-auto"
+                    @wheel.stop
+                    @touchstart.stop
+                    @touchmove.stop
+                >
+                    <div class="flex flex-col gap-2">
+                        <div v-for="subtask in subTasks" :key="subtask.id" class="w-full p-4 rounded-lg bg-bg flex items-center gap-2">
+                            <input type="checkbox" :checked="subtask.status" disabled class="w-4 h-4 shrink-0"/>
+                            <span :class="{ 'line-through text-text-secondary': subtask.status }">
+                                {{ subtask.name }}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <div class="w-full flex justify-center items-center gap-4 pb-4 px-4 self-stretch">
+                <!-- Buttons - fixed at bottom -->
+                <div class="card-buttons absolute bottom-0 left-0 right-0 w-full flex justify-center items-center gap-4 pb-4 px-4 bg-gradient-to-t from-bg-fill via-bg-fill to-transparent pt-8">
                     <button @click.stop="editTask" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
                         <div class="size-6 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
@@ -128,7 +145,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Subtasks</label>
                         <div class="space-y-2">
-                            <div v-for="(subtask, index) in editForm.subtasks" :key="index" class="flex gap-2">
+                            <div v-for="(subtask, index) in subTasks" :key="index" class="flex gap-2">
                                 <input
                                     v-model="subtask.text"
                                     type="text"
@@ -166,6 +183,9 @@ const { tasks, task, updateTask, deleteTask, getTasks, getTask} = useTasks()
 const { loadingGroups, errorGroups, groups, getGroups, getGroup} = useGroups()
 const { categories } = useCategories()
 const { userCategories } = useUserCategories()
+const { getSubTasks, subTasks } = useSubTasks()
+
+const subtaskContainer = ref(null)
 
 const props = defineProps({
     taskId: {
@@ -207,6 +227,7 @@ onMounted(async () => {
         rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
     }
     getTask(props.taskId)
+    getSubTasks(props.taskId)
 })
 
 // Computed property to get the background image URL
@@ -342,5 +363,15 @@ function hashToUnit(s) {
 
 .backface-hidden {
     backface-visibility: hidden;
+}
+
+.subtask-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    max-height: 200px; /* Fixed max height for subtask scroll area */
+}
+
+.card-front {
+    position: relative;
 }
 </style>
