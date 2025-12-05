@@ -1,89 +1,56 @@
 <template>
     <nav
-        class="z-1 fixed bottom-[env(safe-area-inset-bottom,0px)] left-0 right-0 p-2 backdrop-blur bg-bg-surface"
+        class="z-1 fixed bottom-[env(safe-area-inset-bottom,0px)] left-0 right-0 p-2 bg-nav-bg"
     >
         <div class="flex items-center justify-around">
             <NuxtLink
                 to="/taskcreator"
-                class="flex flex-col items-center gap-1 px-3 py-2 rounded-md"
-                :class="{ 'text-blue-600': currentRoute === '/taskcreator', 'text-gray-600': currentRoute !== '/taskcreator' }"
+                class="flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors duration-300 ease-in-out"
+                :class="{ 'fill-icon-primary-active': currentRoute === '/taskcreator', 'fill-icon-primary': currentRoute !== '/taskcreator' }"
                 aria-label="Create"
                 @click="startTransition"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="stroke-primary fill-bg-fill">
-                    <g clip-path="url(#clip0_2492_8628)">
-                        <path d="M12 3C19.2 3 21 4.8 21 12C21 19.2 19.2 21 12 21C4.8 21 3 19.2 3 12C3 4.8 4.8 3 12 3Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M15 12H9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 9V15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </g>
-                    <defs>
-                        <clipPath id="clip0_2492_8628">
-                        <rect width="40" height="40" fill="white"/>
-                        </clipPath>
-                    </defs>
+                <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 27 27" class="hover:fill-icon-primary-hover transition-[fill] duration-300 ease-in-out">
+                    <path d="M13.3333 0L13.7653 0.00133324L14.1893 0.00666682L15.0107 0.0293334L15.4093 0.0466668L16.1813 0.092L16.9187 0.153333C23.2987 0.772 25.8947 3.368 26.5133 9.748L26.5747 10.4853L26.62 11.2573C26.6267 11.388 26.6333 11.5213 26.6373 11.656L26.66 12.4773L26.6667 13.3333L26.66 14.1893L26.6373 15.0107L26.62 15.4093L26.5747 16.1813L26.5133 16.9187C25.8947 23.2987 23.2987 25.8947 16.9187 26.5133L16.1813 26.5747L15.4093 26.62C15.2787 26.6267 15.1453 26.6333 15.0107 26.6373L14.1893 26.66L13.3333 26.6667L12.4773 26.66L11.656 26.6373L11.2573 26.62L10.4853 26.5747L9.748 26.5133C3.368 25.8947 0.772 23.2987 0.153333 16.9187L0.092 16.1813L0.0466668 15.4093C0.0401803 15.2765 0.0344024 15.1436 0.0293334 15.0107L0.00666682 14.1893C0.00266682 13.9093 0 13.624 0 13.3333L0.00133324 12.9013L0.00666682 12.4773L0.0293334 11.656L0.0466668 11.2573L0.092 10.4853L0.153333 9.748C0.772 3.368 3.368 0.772 9.748 0.153333L10.4853 0.092L11.2573 0.0466668C11.388 0.0400001 11.5213 0.0333334 11.656 0.0293334L12.4773 0.00666682C12.7573 0.00266682 13.0427 0 13.3333 0ZM13.3333 8C12.9797 8 12.6406 8.14048 12.3905 8.39052C12.1405 8.64057 12 8.97971 12 9.33333V12H9.33333L9.17733 12.0093C8.83987 12.0495 8.53047 12.217 8.31235 12.4776C8.09423 12.7382 7.98385 13.0722 8.00377 13.4115C8.02369 13.7507 8.17239 14.0696 8.41951 14.3029C8.66662 14.5362 8.99349 14.6663 9.33333 14.6667H12V17.3333L12.0093 17.4893C12.0495 17.8268 12.217 18.1362 12.4776 18.3543C12.7382 18.5724 13.0722 18.6828 13.4115 18.6629C13.7507 18.643 14.0696 18.4943 14.3029 18.2472C14.5362 18 14.6663 17.6732 14.6667 17.3333V14.6667H17.3333L17.4893 14.6573C17.8268 14.6172 18.1362 14.4497 18.3543 14.1891C18.5724 13.9285 18.6828 13.5944 18.6629 13.2552C18.643 12.9159 18.4943 12.5971 18.2472 12.3638C18 12.1305 17.6732 12.0004 17.3333 12H14.6667V9.33333L14.6573 9.17733C14.6191 8.853 14.4632 8.55397 14.2192 8.33695C13.9751 8.11994 13.6599 8.00004 13.3333 8Z"/>
                 </svg>
             </NuxtLink>
 
             <NuxtLink
                 to="/mytasks"
-                class="flex flex-col items-center gap-1 px-3 py-2 rounded-md"
-                :class="{ 'text-blue-600': currentRoute === '/mytasks', 'text-gray-600': currentRoute !== '/mytasks' }"
+                class="flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors duration-300 ease-in-out"
+                :class="{ 'fill-icon-primary-active': currentRoute === '/mytasks', 'fill-icon-primary': currentRoute !== '/mytasks' }"
                 aria-label="My Tasks"
                 @click="startTransition"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="stroke-bg-fill fill-primary">
-                    <g clip-path="url(#clip0_2492_8623)">
-                        <path d="M3.6041 7.1964L10.7421 4.0874C10.8599 4.03692 10.9866 4.01052 11.1147 4.00978C11.2429 4.00904 11.3699 4.03396 11.4882 4.08308C11.6066 4.13219 11.7139 4.20451 11.8039 4.29576C11.8939 4.38701 11.9647 4.49536 12.0121 4.6144L16.9361 16.5164C17.0385 16.7577 17.0419 17.0296 16.9458 17.2735C16.8497 17.5174 16.6616 17.7138 16.4221 17.8204L9.2851 20.9294C9.16726 20.98 9.04047 21.0066 8.91222 21.0074C8.78396 21.0082 8.65684 20.9833 8.53836 20.9342C8.41988 20.8851 8.31245 20.8127 8.2224 20.7214C8.13236 20.63 8.06153 20.5216 8.0141 20.4024L3.0901 8.4994C2.98775 8.25805 2.98427 7.98617 3.08041 7.74228C3.17654 7.49839 3.3646 7.303 3.6041 7.1964Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M15 4H16C16.2652 4 16.5196 4.10536 16.7071 4.29289C16.8946 4.48043 17 4.73478 17 5V8.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M20 6C20.264 6.112 20.52 6.217 20.768 6.315C21.0121 6.41859 21.2051 6.6149 21.3045 6.86075C21.4039 7.1066 21.4015 7.38187 21.298 7.626L19 13" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </g>
-                    <defs>
-                        <clipPath id="clip0_2492_8623">
-                        <rect width="40" height="40"/>
-                        </clipPath>
-                    </defs>
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="26" viewBox="0 0 28 26" class="hover:fill-icon-primary-hover transition-[fill] duration-300 ease-in-out">
+                    <path d="M12.1278 0.013021C12.4752 0.0104481 12.8196 0.0775989 13.1409 0.209636C13.4621 0.341703 13.7539 0.536455 13.9989 0.782552C14.2441 1.02871 14.4385 1.32138 14.5693 1.64323L21.1292 17.5013C21.4019 18.1466 21.4095 18.8735 21.1513 19.5247C20.8929 20.176 20.3887 20.7002 19.7476 20.9831L10.2242 25.1302C9.90504 25.2673 9.56114 25.3396 9.21379 25.3424C8.86639 25.3453 8.52217 25.2777 8.20077 25.1458C7.87918 25.0138 7.58675 24.8192 7.34139 24.5729C7.09613 24.3267 6.90187 24.0342 6.77108 23.7122L0.211182 7.85286C-0.0615748 7.20894 -0.070434 6.48245 0.186443 5.83203C0.443376 5.18183 0.945892 4.65871 1.58488 4.375L11.1187 0.223958C11.4378 0.0873437 11.7808 0.0156341 12.1278 0.013021Z"/>
+                    <path d="M23.4885 2.76693C23.8159 2.63459 24.1828 2.63716 24.5081 2.77474C24.8505 2.91863 25.1811 3.05414 25.5328 3.19271C26.1512 3.45522 26.648 3.94192 26.9234 4.55469C27.1988 5.16749 27.2328 5.86197 27.0185 6.4987L26.943 6.69271L23.8792 13.8581C23.7443 14.1691 23.4963 14.4176 23.1851 14.5521C22.8741 14.6865 22.5235 14.698 22.2047 14.5833C21.8857 14.4685 21.623 14.2355 21.469 13.9336C21.3151 13.6317 21.281 13.2825 21.3752 12.957L21.4286 12.8112L24.4898 5.64974L24.0015 5.45182L23.4664 5.22917C23.3051 5.16078 23.1582 5.06115 23.0354 4.9362C22.9127 4.81135 22.8158 4.66357 22.7502 4.5013C22.6846 4.33884 22.651 4.1648 22.6526 3.98958C22.6542 3.81455 22.6909 3.64158 22.7594 3.48047L22.7607 3.48177C22.8988 3.15662 23.161 2.89942 23.4885 2.76693Z"/>
+                    <path d="M18.6539 1.33674e-07C19.3264 -0.000212706 19.9744 0.253753 20.4677 0.710938C20.9609 1.16827 21.2635 1.79547 21.314 2.46615L21.3206 2.66667V7.33333C21.3202 7.67316 21.1906 8.00028 20.9573 8.2474C20.724 8.49451 20.4046 8.64284 20.0653 8.66276C19.7262 8.68261 19.3923 8.57224 19.1318 8.35417C18.8712 8.13609 18.7032 7.82696 18.663 7.48958L18.6539 7.33333V2.66667H17.3206C16.9808 2.66623 16.6536 2.53662 16.4065 2.30339C16.1594 2.07009 16.011 1.75071 15.9911 1.41146C15.9712 1.07231 16.0817 0.738431 16.2997 0.477865C16.5177 0.217376 16.827 0.0493482 17.1643 0.00911472L17.3206 1.33674e-07H18.6539Z"/>
                 </svg>
-                
             </NuxtLink>
 
             <NuxtLink
-                to="/mytasks"
-                class="flex flex-col items-center gap-1 px-3 py-2 rounded-md"
-                :class="{ 'text-blue-600': currentRoute === '/mytasks', 'text-gray-600': currentRoute !== '/mytasks' }"
+                to="/focus"
+                class="flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors duration-300 ease-in-out"
+                :class="{ 'fill-icon-primary-active': currentRoute === '/focus', 'fill-icon-primary': currentRoute !== '/focus' }"
                 aria-label="My Tasks"
                 @click="startTransition"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="stroke-primary fill-bg-fill">
-                    <g clip-path="url(#clip0_2492_8653)">
-                        <path d="M7 4V20L20 12L7 4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </g>
-                    <defs>
-                        <clipPath id="clip0_2492_8653">
-                            <rect width="40" height="40" fill="white"/>
-                        </clipPath>
-                    </defs>
-                    
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="24" viewBox="0 0 22 24" class="hover:fill-icon-primary-hover transition-[fill] duration-300 ease-in-out">
+                    <path d="M21.0808 12.0001C21.0809 11.4537 20.9401 10.9164 20.672 10.4402C20.4039 9.96407 20.0176 9.56505 19.5503 9.28169L4.78343 0.434854C4.30297 0.153846 3.75715 0.00392123 3.20056 7.588e-05C2.64397 -0.00376947 2.09612 0.1386 1.61183 0.412942C1.12753 0.687284 0.723761 1.08398 0.440903 1.56336C0.158045 2.04273 0.0060162 2.58797 2.52746e-05 3.14454L2.52746e-05 20.8437C0.00394812 21.3998 0.153683 21.9451 0.434278 22.4252C0.714873 22.9053 1.11651 23.3034 1.59908 23.5797C2.08166 23.8561 2.62828 24.001 3.18437 24C3.74047 23.999 4.28657 23.8521 4.76816 23.5741L19.5449 14.7207C20.0132 14.4376 20.4007 14.0385 20.6697 13.5619C20.9388 13.0853 21.0804 12.5474 21.0808 12.0001Z"/>
                 </svg>
             </NuxtLink>
 
             <NuxtLink
                 to="/dashboard"
-                class="flex flex-col items-center gap-1 px-3 py-2 rounded-md"
-                :class="{ 'text-blue-600': currentRoute === '/dashboard', 'text-gray-600': currentRoute !== '/dashboard' }"
+                class="flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors duration-300 ease-in-out"
+                :class="{ 'fill-icon-primary-active': currentRoute === '/dashboard', 'fill-icon-primary': currentRoute !== '/dashboard' }"
                 aria-label="Dashboard"
                 @click="startTransition"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" class="stroke-bg-fill fill-primary">
-                    <g clip-path="url(#clip0_2492_8648)">
-                        <path d="M3 6C3 5.46957 3.21071 4.96086 3.58579 4.58579C3.96086 4.21071 4.46957 4 5 4H19C19.5304 4 20.0391 4.21071 20.4142 4.58579C20.7893 4.96086 21 5.46957 21 6C21 6.53043 20.7893 7.03914 20.4142 7.41421C20.0391 7.78929 19.5304 8 19 8H5C4.46957 8 3.96086 7.78929 3.58579 7.41421C3.21071 7.03914 3 6.53043 3 6Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5 8V18C5 18.5304 5.21071 19.0391 5.58579 19.4142C5.96086 19.7893 6.46957 20 7 20H17C17.5304 20 18.0391 19.7893 18.4142 19.4142C18.7893 19.0391 19 18.5304 19 18V8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M10 12H14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </g>
-                    <defs>
-                        <clipPath id="clip0_2492_8648">
-                        <rect width="40" height="40" fill="white"/>
-                        </clipPath>
-                    </defs>
+                <svg xmlns="http://www.w3.org/2000/svg" width="27" height="24" viewBox="0 0 27 24" class="hover:fill-icon-primary-hover transition-[fill] duration-300 ease-in-out">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M22.6667 8C23.3505 8 23.9147 8.61703 23.9909 9.41276L24 9.60026V19.2005C23.9998 21.7563 22.3342 23.8455 20.2344 23.9922L20 24H6.66667C4.53611 24 2.79467 22.0016 2.67318 19.4831L2.66667 19.2005V9.60026C2.66667 8.71626 3.264 8 4 8H22.6667ZM10.5104 10.6758C10.1864 10.7144 9.88723 10.8706 9.67057 11.1146C9.45403 11.3586 9.33463 11.6738 9.33463 12C9.33463 12.3262 9.45403 12.6414 9.67057 12.8854C9.88723 13.1294 10.1864 13.2856 10.5104 13.3242L10.6667 13.3333H16L16.1562 13.3242C16.4802 13.2856 16.7794 13.1294 16.9961 12.8854C17.2126 12.6414 17.332 12.3262 17.332 12C17.332 11.6738 17.2126 11.3586 16.9961 11.1146C16.7794 10.8706 16.4802 10.7144 16.1562 10.6758L16 10.6667H10.6667L10.5104 10.6758Z"/>
+                    <path d="M24 0C24.7072 0 25.3853 0.281153 25.8854 0.78125C26.3855 1.28135 26.6667 1.95942 26.6667 2.66667C26.6667 3.37391 26.3855 4.05199 25.8854 4.55208C25.3853 5.05218 24.7072 5.33333 24 5.33333H2.66667C1.95942 5.33333 1.28135 5.05218 0.78125 4.55208C0.281153 4.05199 0 3.37391 0 2.66667C0 1.95942 0.281153 1.28135 0.78125 0.78125C1.28135 0.281153 1.95942 0 2.66667 0H24Z"/>
                 </svg>
             </NuxtLink>
         </div>

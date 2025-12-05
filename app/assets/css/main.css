@@ -36,6 +36,12 @@
     
     --color-accent: #FF6B6B;
     --color-accent-hover: #FF5252;
+
+    --color-nav-bg: #E8E8E8;
+
+    --color-icon-primary: #D8A8F4;
+    --color-icon-primary-hover: #717171;
+    --color-icon-primary-active: #2B2B2B;
 }
 
 html, body {

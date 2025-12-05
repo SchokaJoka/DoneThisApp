@@ -1,11 +1,11 @@
 <template>
-    <div class="perspective-1000 flex justify-center items-center">
+    <div class="perspective-1000 w-full flex justify-center items-center">
         <div 
-            class="transition-transform duration-700 transform-style-3d flex justify-center items-center"
+            class="transition-transform duration-700 transform-style-3d w-full flex justify-center items-center"
             :style="{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }"
         >
             <!-- Front of card -->
-            <div class="w-[360px] h-[550px] backface-hidden flex flex-col justify-center items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
+            <div class="w-full max-w-[360px] h-[550px] max-h-[75vh] backface-hidden flex flex-col justify-center items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
 
                 <div class="w-full h-full pt-4 px-6 flex flex-col items-start">
                     <div class="w-full  pb-12 flex justify-between self-stretch">
@@ -14,10 +14,10 @@
                                 {{ userCategoryName }}
                             </span>
                         </div>
-                        <div v-if="task.due_date" class="flex">
+                        <div v-if="task.due_date" class="flex w-full justify-end">
                             <span>
                                 {{ formatDate(task.due_date) }}
-                                <span v-if="task.due_time"> {{ task.due_time }}</span>
+                                <span v-if="task.due_time"> {{ formatTime(task.due_time) }}</span>
                             </span>
                         </div>
                     </div>
@@ -146,10 +146,13 @@
                 </div>
 
                 <div class="w-full flex gap-2">
-                    <button @click.stop="cancelEdit" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                    <button @click.stop="cancelEdit" class="flex-1 px-4 py-2 cursor-pointer bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
                         Cancel
                     </button>
-                    <button @click.stop="saveEdit" class="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                    <button @click.stop="removeTask" class="flex-1 px-4 py-2 cursor-pointer bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                        Delete
+                    </button>
+                    <button @click.stop="saveEdit" class="flex-1 px-4 py-2 cursor-pointer bg-orange-500 text-white rounded-lg hover:bg-orange-600">
                         Save
                     </button>
                 </div>
@@ -272,13 +275,48 @@ function saveEdit() {
 
 function formatDate(dateString) {
     if (!dateString) return ''
-    const date = new Date(dateString)
-    if (isNaN(date)) return ''
+    
+    // Parse date string as local date (avoids timezone issues with YYYY-MM-DD format)
+    const [year, month, day] = dateString.split('-').map(Number)
+    const date = new Date(year, month - 1, day)
+    if (isNaN(date.getTime())) return ''
+    
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    const diffTime = date.getTime() - today.getTime()
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+    
+    // Relative dates for nearby days
+    const relativeDates = {
+        '-1': 'Gestern',
+        '0': 'Heute',
+        '1': 'Morgen',
+        '2': 'Übermorgen'
+    }
+    
+    if (relativeDates[diffDays] !== undefined) {
+        return relativeDates[diffDays]
+    }
+    
+    // Show weekday for dates within the next 7 days
+    if (diffDays > 0 && diffDays <= 7) {
+        return date.toLocaleDateString('de-CH', { weekday: 'long' })
+    }
+    
+    // Full date for everything else
     return date.toLocaleDateString('de-CH', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
     })
+}
+
+function formatTime(timeString) {
+    if (!timeString) return ''
+    const parts = timeString.split(':')
+    if (parts.length < 2) return timeString
+    return `${parts[0]}:${parts[1]} Uhr`
 }
 
 function hashToUnit(s) {

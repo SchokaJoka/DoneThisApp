@@ -1,6 +1,6 @@
 
 <template>
-  <div class="l-svh w-lvw bg-bg">
+  <div class="h-svh w-dvw bg-bg">
     <NuxtPage />
     <Navigation v-if="user" />
   </div>

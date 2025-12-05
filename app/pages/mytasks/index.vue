@@ -1,11 +1,11 @@
 <template>
-  <div class="bg-bg-surface w-screen ">
+  <div class="bg-bg-surface w-full">
     <div class="flex flex-col w-full h-fit p-4 gap-4">
       <div class="w-full">
         <p class="overview-label text-text-secondary">Kategorien</p>
       </div>
     </div>
-    <div class="flex w-screen gap-4 overflow-x-auto p-4">
+    <div class="flex w-full gap-4 overflow-x-scroll p-4">
       <div>
         <CategoryCard :category="{
           id: 0,
@@ -23,7 +23,7 @@
     </div>
   </div>
   
-  <div class="p-8">
+  <div class="p-4">
     <div class="w-full">
       <div class="w-full flex flex-row h-fit justify-center mb-4 items-center sticky top-2 z-30">
         <p class="overview-label text-text-primary">{{ userCategoryName }}</p>
@@ -37,7 +37,7 @@
         leave-from-class="opacity-100 translate-y-0"
         leave-to-class="opacity-0 translate-y-4"
       >
-        <div v-if="filteredTasks?.length > 0" :key="selectedCategory" class="flex flex-col">
+        <div v-if="filteredTasks?.length > 0" :key="selectedCategory" class="flex flex-col w-full">
           <div 
             v-for="(task, index) in filteredTasks" 
             :key="task.id" 
@@ -45,7 +45,7 @@
           >
               <TaskCard 
               :taskId="task.id" 
-              :enable-rotation="true" />
+              :enable-rotation="false" />
           </div>
           <div class="h-[60vh]"/>
         </div>
