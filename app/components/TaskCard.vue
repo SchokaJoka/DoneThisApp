@@ -33,26 +33,30 @@
                             </p>
                         </div>
                     </div>
-                    <div v-if="subTasks && subTasks.length > 0" class="subtasks-scroll w-full flex-1 min-h-0">
-                        <div class="h-full overflow-y-auto">
-                            <div class="flex flex-col gap-4 pb-2">
-                                <div 
-                                    v-for="subtask in sortedSubTasks" 
-                                    :key="subtask.id" 
-                                    class="flex items-center gap-2 p-2 bg-bg rounded-lg cursor-pointer hover:bg-bg-fill transition-colors"
-                                    @click.stop="handleToggleSubtask(subtask)"
-                                >
-                            <input 
-                                type="checkbox" 
-                                :checked="subtask.status" 
-                                class="w-4 h-4 shrink-0 cursor-pointer accent-orange-500"
+                    <div 
+                        v-if="subTasks && subTasks.length > 0" 
+                        ref="subtasksContainer"
+                        class="subtasks-scroll w-full flex-1 min-h-0 overflow-y-auto"
+                        @touchstart="onTouchStart"
+                        @touchmove="onTouchMove"
+                    >
+                        <div class="flex flex-col gap-4 pb-2">
+                            <div 
+                                v-for="subtask in sortedSubTasks" 
+                                :key="subtask.id" 
+                                class="flex items-center gap-2 p-2 bg-bg rounded-lg cursor-pointer hover:bg-bg-fill transition-colors"
                                 @click.stop="handleToggleSubtask(subtask)"
-                            />
-                            <span :class="subtask.status ? 'line-through opacity-50' : ''">
-                                {{ subtask.name }}
-                            </span>
+                            >
+                                <input 
+                                    type="checkbox" 
+                                    :checked="subtask.status" 
+                                    class="w-4 h-4 shrink-0 cursor-pointer accent-orange-500"
+                                    @click.stop="handleToggleSubtask(subtask)"
+                                />
+                                <span :class="subtask.status ? 'line-through opacity-50' : ''">
+                                    {{ subtask.name }}
+                                </span>
                             </div>
-                        </div>
                         </div>
                     </div>
 
@@ -291,6 +295,10 @@ const backgroundImageUrl = computed(() => {
 const rotation = ref(0)
 const isFlipped = ref(false)
 const isSaving = ref(false)
+const subtasksContainer = ref(null)
+let touchStartY = 0
+let scrollStartTop = 0
+
 const editForm = ref({
     name: '',
     description: '',
@@ -455,6 +463,29 @@ function toggleEditSubtaskStatus(index) {
     subtask.status = subtask.status ? 0 : 1
 }
 
+// Touch scroll handlers for iOS
+function onTouchStart(e) {
+    if (!subtasksContainer.value) return
+    touchStartY = e.touches[0].clientY
+    scrollStartTop = subtasksContainer.value.scrollTop
+}
+
+function onTouchMove(e) {
+    if (!subtasksContainer.value) return
+    const touchY = e.touches[0].clientY
+    const deltaY = touchStartY - touchY
+    subtasksContainer.value.scrollTop = scrollStartTop + deltaY
+    
+    // Prevent parent scroll when we can scroll
+    const el = subtasksContainer.value
+    const canScrollUp = el.scrollTop > 0
+    const canScrollDown = el.scrollTop < el.scrollHeight - el.clientHeight
+    
+    if ((deltaY > 0 && canScrollDown) || (deltaY < 0 && canScrollUp)) {
+        e.stopPropagation()
+    }
+}
+
 function formatDate(dateString) {
     if (!dateString) return ''
     
@@ -527,16 +558,7 @@ function hashToUnit(s) {
 }
 
 .subtasks-scroll {
-    position: relative;
-}
-
-.subtasks-scroll > div {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
 }
 </style>
