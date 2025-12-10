@@ -33,7 +33,7 @@
                             </p>
                         </div>
                     </div>
-                    <div v-if="subTasks && subTasks.length > 0" class="subtasks-scroll w-full flex-1 min-h-0 flex flex-col space-y-4 overflow-y-scroll">
+                    <div v-if="subTasks && subTasks.length > 0" class="subtasks-scroll w-full flex-1 min-h-0 flex flex-col gap-4 overflow-y-scroll pb-2">
                         <div 
                             v-for="subtask in sortedSubTasks" 
                             :key="subtask.id" 
@@ -526,5 +526,9 @@ function hashToUnit(s) {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     touch-action: pan-y;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    position: relative;
+    z-index: 1;
 }
 </style>
