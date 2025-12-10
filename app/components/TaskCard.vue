@@ -33,11 +33,11 @@
                             </p>
                         </div>
                     </div>
-                    <div v-if="subTasks && subTasks.length > 0" class="w-full h-full flex flex-col space-y-4 overflow-y-auto">
+                    <div v-if="subTasks && subTasks.length > 0" class="subtasks-scroll w-full h-full flex flex-col space-y-4 overflow-y-auto">
                         <div 
                             v-for="subtask in sortedSubTasks" 
                             :key="subtask.id" 
-                            class="flex items-center gap-2 p-2 bg-bg rounded-lg cursor-pointer hover:bg-bg-fill transition-colors"
+                            class="flex items-center gap-2 p-2 bg-bg rounded-lg cursor-pointer hover:bg-bg-fill transition-colors shrink-0"
                             @click.stop="handleToggleSubtask(subtask)"
                         >
                             <input 
@@ -520,5 +520,11 @@ function hashToUnit(s) {
 
 .backface-hidden {
     backface-visibility: hidden;
+}
+
+.subtasks-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
 }
 </style>
