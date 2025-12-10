@@ -12,6 +12,8 @@
     
     /* BG-FILL */
     --color-bg-fill: #FFFEEB; 
+
+    --color-bg-overlay: rgba(0, 0, 0, 0.5);
     
     /* TEXT */
     --color-text-primary: #2B2B2B;
@@ -76,4 +78,14 @@ span {
     text-align: center;
     font-weight: 400;
     line-height: normal;
+}
+
+.page-enter-active,
+.page-leave-active {
+transition: all 0.2s ease-in-out;
+}
+.page-enter-from,
+.page-leave-to {
+opacity: 0;
+filter: blur(0.1rem);
 }

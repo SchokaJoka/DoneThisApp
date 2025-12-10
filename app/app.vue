@@ -1,6 +1,6 @@
 
 <template>
-  <div class="h-svh w-dvw bg-bg">
+  <div class="h-svh w-dvw bg-bg overflow-x-hidden">
     <NuxtPage />
     <Navigation v-if="user" />
   </div>
@@ -43,13 +43,4 @@ onMounted(() => {
 </script>
 
 <style>
-  .page-enter-active,
-  .page-leave-active {
-    transition: all 0.4s;
-  }
-  .page-enter-from,
-  .page-leave-to {
-    opacity: 0;
-    filter: blur(1rem);
-  }
 </style>

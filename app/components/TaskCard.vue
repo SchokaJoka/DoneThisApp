@@ -5,7 +5,7 @@
             :style="{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }"
         >
             <!-- Front of card -->
-            <div class="w-full max-w-[370px] h-[600px] max-h-[75vh] backface-hidden pt-4 px-6 pb-4 flex flex-col justify-between items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
+            <div class="w-full max-w-[370px] h-[600px] max-h-[75vh] backface-hidden py-4 px-6 flex flex-col justify-between items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
 
                 <div class="flex flex-col w-full flex-1 min-h-0 overflow-hidden">
                     <div class="flex flex-row justify-between items-center mb-6 shrink-0">
@@ -44,7 +44,7 @@
                             <div 
                                 v-for="subtask in sortedSubTasks" 
                                 :key="subtask.id" 
-                                class="flex items-center gap-2 p-2 bg-bg rounded-lg cursor-pointer hover:bg-bg-fill transition-colors"
+                                class="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors"
                                 @click.stop="handleToggleSubtask(subtask)"
                             >
                                 <input 
@@ -79,7 +79,7 @@
                             </svg>
                         </div>
                     </button>
-                    <button class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
+                    <button @click.stop="completeTask" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
                         <div class="size-6 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
                             <g clip-path="url(#clip0_2523_8899)">
@@ -93,7 +93,7 @@
                             </svg>
                         </div>
                     </button>
-                    <button class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
+                    <button @click.stop="focusTask" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
                         <div class="size-6 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
                             <g clip-path="url(#clip0_2492_8653)">
@@ -110,8 +110,29 @@
                 </div>
             </div>
 
+            <!-- Focus warning overlay -->
+            <Transition name="fade">
+                <div 
+                    v-if="showFocusWarning" 
+                    class="fixed bg-bg-overlay w-full max-w-[370px] h-[600px] max-h-[75vh] pt-4 px-6 pb-4 flex flex-col justify-center items-center rounded-2xl"
+                    @click.stop="showFocusWarning = false"
+                >
+                    <div class="bg-bg p-4 rounded-xl text-center" @click.stop>
+                        <div class="text-4xl mb-4">🎯</div>
+                        <h3 class="text-2xl font-semibold text-text-primary mb-2">Du hast bereits eine Aufgabe im Fokus</h3>
+                        <h3 class="text-text-primary text-lg mb-4">Versuche nicht, alles gleichzeitig zu machen.</h3> 
+                        <button 
+                            @click.stop="showFocusWarning = false"
+                            class="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                        >
+                            Verstanden
+                        </button>
+                    </div>
+                </div>
+            </Transition>
+
             <!-- Back of card (Edit form) -->
-            <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start p-[11px] rounded-[21px]" :style="{ transform: 'rotateY(180deg)', backgroundColor: category?.color || '#FFF7ED' }">
+            <div class="absolute backface-hidden w-full max-w-[370px] h-[600px] max-h-[75vh] flex flex-col justify-between items-start py-4 px-6 rounded-2xl" :style="{ transform: 'rotateY(180deg)', backgroundColor: category?.color || '#FFF7ED' }">
                 <div class="w-full h-full overflow-y-auto space-y-4 pb-4">
                     <h2 class="text-xl font-semibold mb-4">Edit Task</h2>
                     
@@ -180,23 +201,37 @@
                     </div>
                 </div>
 
-                <div class="w-full flex gap-2">
-                    <button @click.stop="cancelEdit" class="flex-1 px-4 py-2 cursor-pointer bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                <div class="flex flex-row justify-between items-center w-full mb-4 gap-4">
+                    <button @click.stop="cancelEdit" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
                         Cancel
                     </button>
-                    <button @click.stop="handleDelete" class="flex-1 px-4 py-2 cursor-pointer bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
-                        Delete
+                    <button 
+                        @click.stop="confirmDelete" 
+                        class="flex w-full justify-center cursor-pointer p-4 rounded-lg transition-colors duration-300"
+                        :class="deleteConfirm ? 'bg-red-500 text-white' : 'bg-bg'"
+                    >
+                        {{ deleteConfirm ? 'Sure?' : 'Delete' }}
                     </button>
                     <button 
                         @click.stop="saveEdit" 
                         :disabled="isSaving"
-                        class="flex-1 px-4 py-2 cursor-pointer bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg"
                     >
-                        <svg v-if="isSaving" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg v-if="!isSaving" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
+                            <g clip-path="url(#clip0_2523_8899)">
+                                <path d="M5 12L10 17L20 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_2523_8899">
+                                    <rect width="24" height="24" fill="white"/>
+                                </clipPath>
+                            </defs>
+                        </svg>
+
+                        <svg v-if="isSaving" class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        {{ isSaving ? 'Saving...' : 'Save' }}
                     </button>
                 </div>
             </div>
@@ -205,7 +240,7 @@
 </template>
 
 <script setup>
-const { tasks, task, updateTask, deleteTask, getTasks, getTask} = useTasks()
+const { tasks, task, updateTask, deleteTask, getTasks, getTask, getHasFocus, hasTaskInFocus } = useTasks()
 const { loadingGroups, errorGroups, groups, getGroups, getGroup} = useGroups()
 const { categories } = useCategories()
 const { userCategories } = useUserCategories()
@@ -295,6 +330,8 @@ const backgroundImageUrl = computed(() => {
 const rotation = ref(0)
 const isFlipped = ref(false)
 const isSaving = ref(false)
+const showFocusWarning = ref(false)
+const deleteConfirm = ref(false)
 const subtasksContainer = ref(null)
 let touchStartY = 0
 let scrollStartTop = 0
@@ -320,6 +357,17 @@ async function handleDelete() {
     // Remove from local tasks array to prevent re-fetch of deleted task
     tasks.value = tasks.value.filter(t => t.id !== taskId)
     isFlipped.value = false
+    deleteConfirm.value = false
+}
+
+function confirmDelete() {
+    if (deleteConfirm.value) {
+        handleDelete()
+    } else {
+        deleteConfirm.value = true
+        // Reset after 3 seconds if not confirmed
+        setTimeout(() => { deleteConfirm.value = false }, 3000)
+    }
 }
 
 // Store original subtasks for comparison
@@ -341,6 +389,7 @@ function editTask() {
 
 function cancelEdit() {
     isFlipped.value = false
+    deleteConfirm.value = false
     editForm.value = {
         name: task.value.name,
         description: task.value.description,
@@ -457,6 +506,27 @@ async function handleToggleSubtask(subtask) {
     await getSubTasks(props.taskId)
 }
 
+// Mark task as complete (status = 2)
+async function completeTask() {
+    await updateTask(task.value.id, { status: 2 })
+    // Remove from local tasks array
+    tasks.value = tasks.value.filter(t => t.id !== task.value.id)
+}
+
+// Focus on task (status = 1) - only if no other task is focused
+async function focusTask() {
+    await getHasFocus()
+    if (hasTaskInFocus.value) {
+        showFocusWarning.value = true
+    } else {
+        await updateTask(task.value.id, { status: 1 })
+        // Remove from local tasks array
+        tasks.value = tasks.value.filter(t => t.id !== task.value.id)
+        navigateTo('/focus')
+    }
+    
+}
+
 // Toggle subtask status in edit mode (local only, saved on Save)
 function toggleEditSubtaskStatus(index) {
     const subtask = editSubTasks.value[index]
@@ -551,5 +621,15 @@ function hashToUnit(s) {
 .subtasks-scroll {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
 }
 </style>

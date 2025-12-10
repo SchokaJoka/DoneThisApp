@@ -6,6 +6,9 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: false },
   modules: ["@nuxtjs/supabase", "@nuxt/fonts", "nuxt-lottie"],
+  app: {
+    pageTransition: { name: 'page', mode: 'out-in' }
+  },
   fonts: {
     families: [
       { name: 'Baloo Chettan 2', provider: 'google' },

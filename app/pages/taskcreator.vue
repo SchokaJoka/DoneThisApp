@@ -411,7 +411,8 @@ function addTask(task) {
 </script>
 
 <template>
-  <div class="w-full h-[90dvh] flex flex-col justify-between items-center" >
+  <div class="w-full h-full flex flex-col">
+    <div class="w-full h-[90dvh] flex flex-col justify-between items-center" >
     <!-- User Task -->
     <Transition
       enter-active-class="transition-all duration-500 ease-out"
@@ -563,5 +564,6 @@ function addTask(task) {
     
     
   </TransitionGroup>
+  </div>
   </div>
 </template>

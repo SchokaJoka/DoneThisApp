@@ -2,6 +2,7 @@
 const loading = ref(false)
 const error = ref(null)
 const tasks = ref([])
+const hasTaskInFocus = ref(false)
 
 export function useTasks() {
 
@@ -13,6 +14,26 @@ export function useTasks() {
 
     const response = await $fetch('/api/tasks', { method: 'GET' })
     tasks.value = response
+
+    loading.value = false
+  }
+
+  async function getFocusTask() {
+    error.value = null
+    loading.value = true
+
+    const response = await $fetch('/api/tasks/focus', { method: 'GET' })
+    task.value = response
+
+    loading.value = false
+  }
+
+  async function getHasFocus() {
+    error.value = null
+    loading.value = true
+
+    const response = await $fetch('/api/tasks/hasFocus', { method: 'GET' })
+    hasTaskInFocus.value = response
 
     loading.value = false
   }
@@ -92,5 +113,5 @@ export function useTasks() {
     loading.value = false
   }
   
-  return { loading, error, task, tasks, getTasks, getTask, createTask, deleteTask, updateTask}
+  return { loading, error, task, tasks, getTasks, getTask, createTask, deleteTask, updateTask, getFocusTask, hasTaskInFocus, getHasFocus }
 }
