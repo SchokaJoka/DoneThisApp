@@ -37,8 +37,8 @@
                         v-if="subTasks && subTasks.length > 0" 
                         ref="subtasksContainer"
                         class="subtasks-scroll w-full flex-1 min-h-0 overflow-y-auto"
-                        @touchstart="onTouchStart"
-                        @touchmove="onTouchMove"
+                        @touchstart.passive="onTouchStart"
+                        @touchmove.prevent="onTouchMove"
                     >
                         <div class="flex flex-col gap-4 pb-2">
                             <div 
@@ -475,15 +475,6 @@ function onTouchMove(e) {
     const touchY = e.touches[0].clientY
     const deltaY = touchStartY - touchY
     subtasksContainer.value.scrollTop = scrollStartTop + deltaY
-    
-    // Prevent parent scroll when we can scroll
-    const el = subtasksContainer.value
-    const canScrollUp = el.scrollTop > 0
-    const canScrollDown = el.scrollTop < el.scrollHeight - el.clientHeight
-    
-    if ((deltaY > 0 && canScrollDown) || (deltaY < 0 && canScrollUp)) {
-        e.stopPropagation()
-    }
 }
 
 function formatDate(dateString) {
