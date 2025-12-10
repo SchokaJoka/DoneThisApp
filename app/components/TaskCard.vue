@@ -33,13 +33,15 @@
                             </p>
                         </div>
                     </div>
-                    <div v-if="subTasks && subTasks.length > 0" class="subtasks-scroll w-full flex-1 min-h-0 flex flex-col gap-4 overflow-y-scroll pb-2">
-                        <div 
-                            v-for="subtask in sortedSubTasks" 
-                            :key="subtask.id" 
-                            class="flex items-center gap-2 p-2 bg-bg rounded-lg cursor-pointer hover:bg-bg-fill transition-colors shrink-0"
-                            @click.stop="handleToggleSubtask(subtask)"
-                        >
+                    <div v-if="subTasks && subTasks.length > 0" class="subtasks-scroll w-full flex-1 min-h-0">
+                        <div class="h-full overflow-y-auto">
+                            <div class="flex flex-col gap-4 pb-2">
+                                <div 
+                                    v-for="subtask in sortedSubTasks" 
+                                    :key="subtask.id" 
+                                    class="flex items-center gap-2 p-2 bg-bg rounded-lg cursor-pointer hover:bg-bg-fill transition-colors"
+                                    @click.stop="handleToggleSubtask(subtask)"
+                                >
                             <input 
                                 type="checkbox" 
                                 :checked="subtask.status" 
@@ -49,6 +51,8 @@
                             <span :class="subtask.status ? 'line-through opacity-50' : ''">
                                 {{ subtask.name }}
                             </span>
+                            </div>
+                        </div>
                         </div>
                     </div>
 
@@ -523,12 +527,16 @@ function hashToUnit(s) {
 }
 
 .subtasks-scroll {
+    position: relative;
+}
+
+.subtasks-scroll > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    touch-action: pan-y;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    position: relative;
-    z-index: 1;
 }
 </style>
