@@ -7,7 +7,7 @@
             <!-- Front of card -->
             <div class="w-full max-w-[370px] h-[600px] max-h-[75vh] backface-hidden pt-4 px-6 pb-4 flex flex-col justify-between items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
 
-                <div class="flex flex-col w-full flex-1 min-h-0">
+                <div class="flex flex-col w-full flex-1 min-h-0 overflow-hidden">
                     <div class="flex flex-row justify-between items-center mb-6 shrink-0">
                         <div class="">
                             <span>
@@ -33,7 +33,7 @@
                             </p>
                         </div>
                     </div>
-                    <div v-if="subTasks && subTasks.length > 0" class="subtasks-scroll w-full h-full flex flex-col space-y-4 overflow-y-auto">
+                    <div v-if="subTasks && subTasks.length > 0" class="subtasks-scroll w-full flex-1 min-h-0 flex flex-col space-y-4 overflow-y-scroll">
                         <div 
                             v-for="subtask in sortedSubTasks" 
                             :key="subtask.id" 
