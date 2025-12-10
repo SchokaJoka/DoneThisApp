@@ -23,7 +23,7 @@
     </div>
   </div>
   
-  <div class="p-4">
+  <div class="p-4 w-full">
     <div class="w-full">
       <div class="w-full flex flex-row h-fit justify-center mb-4 items-center sticky top-2 z-30">
         <p class="overview-label text-text-primary">{{ userCategoryName }}</p>
@@ -37,11 +37,11 @@
         leave-from-class="opacity-100 translate-y-0"
         leave-to-class="opacity-0 translate-y-4"
       >
-        <div v-if="filteredTasks?.length > 0" :key="selectedCategory" class="flex flex-col w-full">
+        <div v-if="filteredTasks?.length > 0" :key="selectedCategory" class="flex flex-col gap-[30vh] w-full min-h-screen">
           <div 
             v-for="(task, index) in filteredTasks" 
             :key="task.id" 
-            class="w-full flex justify-center items-start sticky top-16 mt-64 first:mt-0"
+            class="w-full flex justify-center items-start sticky top-16"
           >
               <TaskCard 
               :taskId="task.id" 
