@@ -33,18 +33,17 @@
                             </p>
                         </div>
                     </div>
-                    <div v-if="subTasks && subTasks.length > 0" class="w-full h-full flex flex-col space-y-4 overflow-y-auto">
+                    <div v-if="subTasks && subTasks.length > 0" class="w-full h-full flex flex-col space-y-4 overflow-y-auto overscroll-contain touch-pan-y">
                         <div 
                             v-for="subtask in sortedSubTasks" 
                             :key="subtask.id" 
-                            class="flex items-center gap-2 p-2 bg-bg rounded-lg cursor-pointer hover:bg-bg-fill transition-colors"
+                            class="flex items-center gap-2 p-2 bg-bg rounded-lg cursor-pointer hover:bg-bg-fill transition-colors shrink-0"
                             @click.stop="handleToggleSubtask(subtask)"
                         >
                             <input 
                                 type="checkbox" 
                                 :checked="subtask.status" 
-                                class="w-4 h-4 shrink-0 cursor-pointer accent-orange-500"
-                                @click.stop="handleToggleSubtask(subtask)"
+                                class="w-4 h-4 shrink-0 cursor-pointer accent-orange-500 pointer-events-none"
                             />
                             <span :class="subtask.status ? 'line-through opacity-50' : ''">
                                 {{ subtask.name }}
@@ -104,7 +103,7 @@
 
             <!-- Back of card (Edit form) -->
             <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start p-[11px] rounded-[21px]" :style="{ transform: 'rotateY(180deg)', backgroundColor: category?.color || '#FFF7ED' }">
-                <div class="w-full h-full overflow-y-auto space-y-4 pb-4">
+                <div class="w-full h-full overflow-y-auto overscroll-contain touch-pan-y space-y-4 pb-4">
                     <h2 class="text-xl font-semibold mb-4">Edit Task</h2>
                     
                     <div>
@@ -520,5 +519,10 @@ function hashToUnit(s) {
 
 .backface-hidden {
     backface-visibility: hidden;
+}
+
+/* Mobile scroll fixes */
+.overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
 }
 </style>
