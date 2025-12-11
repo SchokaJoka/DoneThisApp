@@ -43,15 +43,24 @@ const userTask = ref({
 
 const showContent = ref(false);
 
+watch(
+  () => showContent.value,
+  (newVal) => {
+    if (newVal && assistantMessage.value.length > 0) {
+      typeText(assistantMessage.value[0]);
+    }
+  }
+);
+
 const categoryColors = computed(() => {
   if (!userTask.value.category_id) {
-    return { color: "#E8E8E8", color_light: "#FFF7ED", color_dark: "#ADADAD" };
+    return { color: "#E8E8E8", color_light: "#FFFEEB", color_dark: "#C2C2C2" };
   }
   const category = categories.value.find(
     (cat) => cat.id === userTask.value.category_id
   );
   if (!category) {
-    return { color: "#E8E8E8", color_light: "#FFF7ED", color_dark: "#ADADAD" };
+    return { color: "#E8E8E8", color_light: "#FFFEEB", color_dark: "#C2C2C2" };
   }
   return {
     color: category.color,
@@ -198,9 +207,6 @@ watch(
 );
 
 onMounted(async () => {
-  if (assistantMessage.value.length > 0) {
-    await typeText(assistantMessage.value[0]);
-  }
 });
 
 async function handleUserAudio() {
@@ -322,10 +328,11 @@ function clearDraft() {
 }
 
 const triedAdd = ref(false);
-async function addTask(task) {
+
+async function addTask() {
   triedAdd.value = true;
   let hasError = false;
-  if (!userTask.value.name || !userTask.value.name.trim()) {
+  if (!userTask.value.name) {
     hasError = true;
   }
   if (!userTask.value.categoryName) {
@@ -338,15 +345,15 @@ async function addTask(task) {
   console.log("Created Task:", createdTask);
   // Create subtasks if any exist
   if (createdTask?.id && userTask.value.subTasks.length > 0) {
-    const validSubTasks = userTask.value.subTasks.filter(
-      (st) => st.name && st.name.trim()
-    );
+    const validSubTasks = userTask.value.subTasks
     if (validSubTasks.length > 0) {
       const createdSubTasks = await createSubTasks(
         createdTask.id,
         validSubTasks
       );
       console.log("Created Subtasks:", createdSubTasks);
+    } else {
+      console.log("No valid subtasks to create.");
     }
   }
   navigateTo("/mytasks");
@@ -354,344 +361,330 @@ async function addTask(task) {
 </script>
 
 <template>
-  <div
-    v-if="!userTask.showDraft && !showContent"
-    class="absolute inset-0 w-full h-full flex items-center justify-center"
-  >
-    <div class="w-full h-full">
-      <Lottie
-        name="playing-cards"
-        :autoplay="true"
-        :loop="false"
-        :speed="2"
-        :pause-animation="false"
-        :play-on-hover="false"
-        width="100%"
-        height="100%"
-        direction="1"
-        @onComplete="showContent = true"
-      />
-    </div>
-  </div>
-  <div class="w-full h-[90vh] flex flex-col fixed top-0 left-0">
-    <div class="w-full h-[90dvh] flex flex-col justify-between items-center">
-      <!-- User Task -->
-      <Transition
-        enter-active-class="transition-all duration-500 ease-out"
-        enter-from-class="opacity-0 -translate-y-4"
-        enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition-all duration-300 ease-in"
-        leave-from-class="opacity-100 translate-y-0"
-        leave-to-class="opacity-0 -translate-y-4"
+  <div class="h-[93vh] w-full fixed top-0 left-0 flex flex-col justify-center items-center">
+    <div class="w-full flex flex-col">
+      <TransitionGroup 
+        name="move-animation"
+      >
+      <div
+        v-if="!userTask.showDraft && !showContent"
+        key="lottie-intro"
+        class="w-full max-h-[30vh] flex items-center justify-center"
+      >
+        <div class="w-full h-full max-h-[30vh]">
+          <Lottie name="playing-cards" width="100%" height="100%" :autoplay="true" :loop="false" :speed="2" :pause-animation="false" :play-on-hover="false" direction="1" @onComplete="showContent = true" />
+        </div>
+      
+      </div>
+      <div
+        v-if="userTask.showDraft"
+        key="user-task"
+        class="w-full max-h-[50vh] z-1 flex justify-center items-start px-4 pt-4"
       >
         <div
-          v-if="userTask.showDraft"
-          class="w-full max-h-[50vh] z-1 fixed top-0 flex justify-center items-start px-4 pt-4"
+          class="w-[360px] flex flex-col justify-start items-start bg-bg-surface p-4 rounded-[21px] gap-4 overflow-hidden"
+          :style="{ backgroundColor: categoryColors.color }"
         >
           <div
-            class="w-[360px] flex flex-col justify-start items-start bg-bg-surface p-4 rounded-[21px] gap-4 overflow-hidden"
-            :style="{ backgroundColor: categoryColors.color }"
+            class="w-full flex flex-row flex-wrap justify-between items-center gap-2"
           >
-            <div
-              class="w-full flex flex-row flex-wrap justify-between items-center gap-2"
-            >
-              <div class="">
-                <select
-                  v-model="userTask.categoryUserName"
-                  class="h-10 px-4 rounded-lg text-text-primary transition-colors duration-300"
-                  :style="{
-                    backgroundColor: categoryColors.color_light,
-                    border:
-                      triedAdd && !userTask.categoryName
-                        ? '2px solid #ef4444'
-                        : '2px solid ' + categoryColors.color_light,
-                  }"
-                  @change="triedAdd = false"
-                >
-                  <option value="" disabled selected>Kategorie</option>
-                  <option
-                    v-for="(name, key) in categoryOptions"
-                    :key="key"
-                    :value="name"
-                  >
-                    {{ name }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="shrink-0">
-                <input
-                  type="datetime-local"
-                  v-model="dateTimeLocal"
-                  class="h-10 px-2 rounded-lg text-sm max-w-[180px]"
-                  :style="{ backgroundColor: categoryColors.color_light }"
-                />
-              </div>
-            </div>
-
-            <div class="w-full">
-              <input
-                type="text"
-                v-model="userTask.name"
-                placeholder="Name"
-                :class="[
-                  'w-full px-4 py-2 rounded-lg text-2xl font-bold outline-none placeholder-text-primary transition-colors duration-300',
-                ]"
+            <div class="">
+              <select
+                v-model="userTask.categoryUserName"
+                class="h-10 px-4 rounded-lg text-text-primary transition-colors duration-300"
                 :style="{
-                  fontFamily: 'var(--font-primary)',
                   backgroundColor: categoryColors.color_light,
                   border:
-                    triedAdd && (!userTask.name || !userTask.name.trim())
+                    triedAdd && !userTask.categoryName
                       ? '2px solid #ef4444'
                       : '2px solid ' + categoryColors.color_light,
                 }"
-                @input="triedAdd = false"
-              />
-            </div>
-            <div class="w-full">
-              <textarea
-                v-model="userTask.description"
-                placeholder="Description"
-                rows="3"
-                class="w-full px-4 py-3 text-base bg-bg-fill rounded-lg border-none placeholder-text-primary"
-                :style="{
-                  fontFamily: 'var(--font-secondary)',
-                  backgroundColor: categoryColors.color_light,
-                }"
-              />
-            </div>
-
-            <!-- Subtasks -->
-            <div class="w-full flex flex-col gap-2">
-              <div
-                v-for="(subtask, index) in userTask.subTasks"
-                :key="index"
-                class="flex items-center gap-2 px-4 py-3 rounded-lg"
-                :style="{ backgroundColor: categoryColors.color_light }"
+                @change="triedAdd = false"
               >
-                <input
-                  v-model="userTask.subTasks[index].name"
-                  type="text"
-                  placeholder="Subtask name..."
-                  class="flex-1 bg-transparent border-none outline-none text-text-primary placeholder-text-primary/50"
-                  :style="{ fontFamily: 'var(--font-secondary)' }"
-                />
-                <button
-                  @click.stop="removeSubtask(index)"
-                  class="p-1 text-text-primary/50 hover:text-text-primary transition-colors"
+                <option value="" disabled selected>Kategorie</option>
+                <option
+                  v-for="(name, key) in categoryOptions"
+                  :key="key"
+                  :value="name"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M3 6h18" />
-                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                  </svg>
-                </button>
-              </div>
-              <button
-                @click.stop="addSubtask"
-                class="w-full px-4 py-3 rounded-lg text-text-primary font-medium transition-colors"
-                :style="{ backgroundColor: categoryColors.color_dark }"
-              >
-                + Add Subtask
-              </button>
+                  {{ name }}
+                </option>
+              </select>
             </div>
 
-            <div
-              class="flex flex-row justify-between items-center w-full gap-4"
-            >
-              <button
-                @click.stop="clearDraft"
-                class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg"
-              >
-                <div class="size-6 flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <g clip-path="url(#clip0_2565_9051)">
-                      <path
-                        d="M18 6L6 18"
-                        stroke="#2B2B2B"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                      <path
-                        d="M6 6L18 18"
-                        stroke="#2B2B2B"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_2565_9051">
-                        <rect width="24" height="24" fill="white" />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </div>
-              </button>
-              <button
-                @click.stop="addTask(userTask)"
-                class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg"
-              >
-                <div class="size-6 flex items-center justify-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    class="stroke-text-primary"
-                  >
-                    <g clip-path="url(#clip0_2523_8899)">
-                      <path
-                        d="M5 12L10 17L20 7"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </g>
-                    <defs>
-                      <clipPath id="clip0_2523_8899">
-                        <rect width="24" height="24" fill="white" />
-                      </clipPath>
-                    </defs>
-                  </svg>
-                </div>
-              </button>
+            <div class="shrink-0">
+              <input
+                type="datetime-local"
+                v-model="dateTimeLocal"
+                class="h-10 px-2 rounded-lg text-sm max-w-[180px]"
+                :style="{ backgroundColor: categoryColors.color_light }"
+              />
             </div>
           </div>
-        </div>
-      </Transition>
 
-      <!-- AI Assistant Message -->
-      <Transition
-        enter-active-class="transition-all duration-1000 ease-out"
-        enter-from-class="opacity-0 translate-y-8"
-        enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition-all duration-500 ease-in"
-        leave-from-class="opacity-100 translate-y-0"
-        leave-to-class="opacity-0 translate-y-8"
+          <div class="w-full">
+            <input
+              type="text"
+              v-model="userTask.name"
+              placeholder="Name"
+              :class="[
+                'w-full px-4 py-2 rounded-lg text-2xl font-bold outline-none placeholder-text-primary transition-colors duration-300',
+              ]"
+              :style="{
+                fontFamily: 'var(--font-primary)',
+                backgroundColor: categoryColors.color_light,
+                border:
+                  triedAdd && (!userTask.name || !userTask.name.trim())
+                    ? '2px solid #ef4444'
+                    : '2px solid ' + categoryColors.color_light,
+              }"
+              @input="triedAdd = false"
+            />
+          </div>
+          <div class="w-full">
+            <textarea
+              v-model="userTask.description"
+              placeholder="Description"
+              rows="3"
+              class="w-full px-4 py-3 text-base bg-bg-fill rounded-lg border-none placeholder-text-primary"
+              :style="{
+                fontFamily: 'var(--font-secondary)',
+                backgroundColor: categoryColors.color_light,
+              }"
+            />
+          </div>
+
+          <!-- Subtasks -->
+          <div class="w-full flex flex-col gap-2">
+            <div
+              v-for="(subtask, index) in userTask.subTasks"
+              :key="index"
+              class="flex items-center gap-2 px-4 py-3 rounded-lg"
+              :style="{ backgroundColor: categoryColors.color_light }"
+            >
+              <input
+                v-model="userTask.subTasks[index].name"
+                type="text"
+                placeholder="Subtask name..."
+                class="flex-1 bg-transparent border-none outline-none text-text-primary placeholder-text-primary/50"
+                :style="{ fontFamily: 'var(--font-secondary)' }"
+              />
+              <button
+                @click.stop="removeSubtask(index)"
+                class="p-1 text-text-primary/50 hover:text-text-primary transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                </svg>
+              </button>
+            </div>
+            <button
+              @click.stop="addSubtask"
+              class="w-full px-4 py-3 rounded-lg text-text-primary font-medium transition-colors"
+              :style="{ backgroundColor: categoryColors.color_dark }"
+            >
+              + Add Subtask
+            </button>
+          </div>
+
+          <div
+            class="flex flex-row justify-between items-center w-full gap-4"
+          >
+            <button
+              @click.stop="clearDraft"
+              class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg"
+            >
+              <div class="size-6 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <g clip-path="url(#clip0_2565_9051)">
+                    <path
+                      d="M18 6L6 18"
+                      stroke="#2B2B2B"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M6 6L18 18"
+                      stroke="#2B2B2B"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_2565_9051">
+                      <rect width="24" height="24" fill="white" />
+                    </clipPath>
+                  </defs>
+                </svg>
+              </div>
+            </button>
+            <button
+              @click.stop="addTask()"
+              class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg"
+            >
+              <div class="size-6 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  class="stroke-text-primary"
+                >
+                  <g clip-path="url(#clip0_2523_8899)">
+                    <path
+                      d="M5 12L10 17L20 7"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_2523_8899">
+                      <rect width="24" height="24" fill="white" />
+                    </clipPath>
+                  </defs>
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        v-if="showContent"
+        key="ai-message"
+        class="w-full h-full overflow-hidden overflow-y-auto flex justify-center items-start px-4 pb-4"
       >
-        <div
-          v-if="showContent"
-          class="w-full h-full  bottom-16 overflow-hidden overflow-y-auto flex justify-center items-start px-4 pb-4"
-        >
-          <div class="w-full max-w-[500px] flex flex-col items-center gap-4">
-            <!-- Error message -->
-            <div
-              v-if="errorMsg"
-              class="w-full bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg"
-            >
-              {{ errorMsg }}
-            </div>
-
-            <!-- Message -->
-            <Transition
-              enter-active-class="transition-all duration-300 ease-out"
-              enter-from-class="opacity-0 -translate-y-4"
-              enter-to-class="opacity-100 translate-y-0"
-            >
-              <div
-                v-if="assistantMessage.length > 0"
-                class="w-full flex flex-col rounded-2xl px-4 py-4 items-center text-left gap-4"
-              >
-                <div class="w-15 h-15">
-                  <Lottie
-                    name="Eyes"
-                    :pause-animation="!isRecording && !isTyping"
-                    height="100%"
-                    :speed="1"
-                  />
-                </div>
-
-                <div class="w-full">
-                  <p
-                    class="text-gray-800 text-lg"
-                    style="font-family: 'Roboto', sans-serif"
-                  >
-                    {{ displayedText }}
-                    <span
-                      v-if="isTyping"
-                      class="inline-block w-0.5 h-4 bg-gray-800 ml-0.5 animate-pulse"
-                    ></span>
-                  </p>
-                </div>
-              </div>
-            </Transition>
+        <div class="w-full max-w-[500px] flex flex-col items-center gap-4">
+          <!-- Error message -->
+          <div
+            v-if="errorMsg"
+            class="w-full bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg"
+          >
+            {{ errorMsg }}
           </div>
+            <div
+              v-if="assistantMessage.length > 0"
+              class="w-full flex flex-col rounded-2xl px-4 py-4 items-center text-left gap-4"
+            >
+              <div class="w-15 h-15">
+                <Lottie
+                  name="Eyes"
+                  :pause-animation="!isRecording && !isTyping"
+                  height="100%"
+                  :speed="1"
+                />
+              </div>
+
+              <div class="w-full">
+                <p
+                  class="text-gray-800 text-lg"
+                  style="font-family: 'Roboto', sans-serif"
+                >
+                  {{ displayedText }}
+                  <span
+                    v-if="isTyping"
+                    class="inline-block w-0.5 h-4 bg-gray-800 ml-0.5 animate-pulse"
+                  ></span>
+                </p>
+              </div>
+            </div>
         </div>
-      </Transition>
+      </div>
+
       <!-- Recording button -->
-    </div>
-    <div
-      class="w-full h-[10dvh] fixed bottom-16 flex justify-center items-center p-4"
-    >
-      <Transition
-        enter-active-class="transition-all duration-1000 ease-out delay-300"
-        enter-from-class="opacity-0 translate-y-8"
-        enter-to-class="opacity-100 translate-y-0"
+      <div
+        key="recording-section"
+        class="w-full flex justify-center items-center p-4 mb-8"
       >
-        <TransitionGroup
-          v-if="showContent"
-          tag="div"
-          class="flex justify-center items-center gap-4 mb-8"
-          enter-active-class="transition-all duration-300 ease-out"
-          enter-from-class="opacity-0 scale-75"
-          enter-to-class="opacity-100 scale-100"
-          leave-active-class="transition-all duration-300 ease-in absolute"
-          leave-from-class="opacity-100 scale-100"
-          leave-to-class="opacity-0 scale-75"
-          move-class="transition-transform duration-200 ease-in-out"
-        >
-          <button
-            v-if="!userTask.showDraft"
-            @click="userTask.showDraft = true"
-            class="h-16 px-6 flex items-center justify-center bg-btn-primary hover:bg-btn-primary-hover text-text-secondary rounded-lg transition-all font-medium shadow-md"
+          <TransitionGroup
+            v-if="showContent"
+            tag="div"
+            class="flex justify-center items-center gap-4"
+            enter-active-class="transition-all duration-500 ease-out"
+            enter-from-class="opacity-0 scale-75"
+            enter-to-class="opacity-100 scale-100"
+            leave-active-class="transition-all duration-500 ease-in absolute"
+            leave-from-class="opacity-100 scale-100"
+            leave-to-class="opacity-0 scale-75"
           >
-            Manual Creation
-          </button>
-          <button
-            key="mic-btn"
-            @click="isRecording ? handleStopRecording() : startRecording()"
-            :class="[
-              'flex items-center justify-center w-16 h-16 rounded-full transition-all shadow-lg',
-              isRecording
-                ? 'bg-accent hover:bg-accent-hover animate-pulse text-white'
-                : 'bg-btn-primary hover:bg-btn-primary-hover text-text-secondary',
-            ]"
-          >
-            <template v-if="!isRecording">
-              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"
-                />
-                <path
-                  d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"
-                />
-              </svg>
-            </template>
-            <template v-else>
-              <div class="w-3 h-3 bg-white rounded-full"></div>
-            </template>
-          </button>
-        </TransitionGroup>
-      </Transition>
+            <button
+              v-if="!userTask.showDraft"
+              @click="userTask.showDraft = true"
+              class="h-16 px-6 flex items-center justify-center bg-btn-primary hover:bg-btn-primary-hover text-text-secondary rounded-lg transition-all font-medium"
+            >
+              Manual Creation
+            </button>
+            <button
+              key="mic-btn"
+              @click="isRecording ? handleStopRecording() : startRecording()"
+              :class="[
+                'flex items-center justify-center w-16 h-16 rounded-full transition-all',
+                isRecording
+                  ? 'bg-accent hover:bg-accent-hover animate-pulse text-white'
+                  : 'bg-btn-primary hover:bg-btn-primary-hover text-text-secondary',
+              ]"
+            >
+              <template v-if="!isRecording">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                    d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"
+                  />
+                  <path
+                    d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"
+                  />
+                </svg>
+              </template>
+              <template v-else>
+                <div class="w-3 h-3 bg-white rounded-full"></div>
+              </template>
+            </button>
+          </TransitionGroup>
+      </div>
+
+      </TransitionGroup>
+
     </div>
   </div>
 </template>
+
+<style scoped>
+  .move-animation-move, 
+  .move-animation-enter-active,
+  .move-animation-leave-active {
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .move-animation-enter-from,
+  .move-animation-leave-to {
+    opacity: 0;
+  }
+
+  /* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+  .move-animation-leave-active {
+    position: absolute;
+    width: 100%;
+    height: 30vh;
+  }
+</style>
