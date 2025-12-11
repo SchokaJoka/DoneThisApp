@@ -1,8 +1,8 @@
 <template>
     <nav
-        class="z-50 fixed bottom-0 left-0 right-0 p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] bg-nav-bg"
+        class="z-50 min-h-[7vh] fixed bottom-0 left-0 right-0 p-2 pb-0 bg-nav-bg"
     >
-        <div class="flex items-center justify-around">
+        <div class="flex flex-row fixed w-full items-center justify-around pb-[env(safe-area-inset-bottom,0px)]">
             <NuxtLink
                 to="/taskcreator"
                 class="flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors duration-200 ease-in-out"
@@ -42,7 +42,7 @@
             </NuxtLink>
 
             <NuxtLink
-                to="/dashboard"
+                to="/archive"
                 class="flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors duration-200 ease-in-out"
                 :class="{ 'fill-icon-primary-active': currentRoute === '/dashboard', 'fill-icon-primary': currentRoute !== '/dashboard' }"
                 aria-label="Dashboard"

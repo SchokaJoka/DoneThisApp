@@ -61,8 +61,15 @@
     
 <script setup>
 
-const { tasks } = useTasks()
+const { tasks, getTasks } = useTasks()
 const { categories } = useCategories()
+
+onMounted(async () => {
+  if (!tasks.value.length) {
+    console.log('Fetching tasks in MyTasks page...')
+    await getTasks()
+  }
+})
 
 const taskInbox = computed(() => {
   return tasks.value.filter(task => task.status === 0)

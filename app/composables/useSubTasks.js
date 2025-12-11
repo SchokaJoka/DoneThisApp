@@ -28,24 +28,55 @@ export function useSubTasks() {
 
     try {
       const body = {
-        task_id: taskId,
         name: properties.name || null,
         order: properties.order ?? subTasks.value.length,
         status: properties.status ?? 0,
       }
 
-      const created = await $fetch('/api/subTasks', {
+      const created = await $fetch(`/api/subTasks/${taskId}`, {
+        method: 'POST',
+        body: [body] // Send as array, get first item back
+      })
+
+      if (created && created.length > 0) {
+        subTasks.value.push(created[0])
+        return created[0]
+      }
+      return null
+    } catch (err) {
+      errorSubTasks.value = err?.message || String(err)
+      return null
+    } finally {
+      loadingSubTasks.value = false
+    }
+  }
+
+  // Batch create multiple subtasks for a task
+  async function createSubTasks(taskId, subtasksArray) {
+    if (!subtasksArray || subtasksArray.length === 0) return []
+    
+    errorSubTasks.value = null
+    loadingSubTasks.value = true
+
+    try {
+      const body = subtasksArray.map((st, index) => ({
+        name: st.name || null,
+        order: st.order ?? index,
+        status: st.status ?? 0,
+      }))
+
+      const created = await $fetch(`/api/subTasks/${taskId}`, {
         method: 'POST',
         body
       })
 
-      if (created && created.id) {
-        subTasks.value.push(created)
+      if (created && created.length > 0) {
+        subTasks.value.push(...created)
       }
-      return created
+      return created || []
     } catch (err) {
       errorSubTasks.value = err?.message || String(err)
-      return null
+      return []
     } finally {
       loadingSubTasks.value = false
     }
@@ -126,6 +157,7 @@ export function useSubTasks() {
     subTasks,
     getSubTasks,
     createSubTask,
+    createSubTasks,
     updateSubTask,
     deleteSubTask,
     reorderSubTask,
