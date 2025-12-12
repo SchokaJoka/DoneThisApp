@@ -12,6 +12,8 @@
     
     /* BG-FILL */
     --color-bg-fill: #FFFEEB; 
+
+    --color-bg-overlay: rgba(0, 0, 0, 0.5);
     
     /* TEXT */
     --color-text-primary: #2B2B2B;
@@ -27,8 +29,6 @@
     /* FONTS */
     --font-primary: 'Arial Rounded MT Bold', system-ui, sans-serif;
     --font-secondary: "Baloo Chettan 2", system-ui, sans-serif;
-    /* Add custom fonts like this: */
-    /* --font-custom: "Your Font Name", sans-serif; */
 
     /* BUTTON COLORS */
     --color-btn-primary: #D8A8F4;
@@ -36,6 +36,12 @@
     
     --color-accent: #FF6B6B;
     --color-accent-hover: #FF5252;
+
+    --color-nav-bg: #E8E8E8;
+
+    --color-icon-primary: #D8A8F4;
+    --color-icon-primary-hover: #717171;
+    --color-icon-primary-active: #2B2B2B;
 }
 
 html, body {
@@ -72,4 +78,14 @@ span {
     text-align: center;
     font-weight: 400;
     line-height: normal;
+}
+
+.page-enter-active,
+.page-leave-active {
+transition: all 0.2s ease-in-out;
+}
+.page-enter-from,
+.page-leave-to {
+opacity: 0;
+filter: blur(0.1rem);
 }

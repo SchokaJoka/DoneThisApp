@@ -44,5 +44,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: error.message || 'Failed to delete task' })
   }
 
+  console.log(`[api/tasks.[id].delete] deleted task ${taskId} for user ${verifiedUser.id}`)
+
   return { success: true, id: taskId }
 })

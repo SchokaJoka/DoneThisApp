@@ -56,33 +56,33 @@ export type Database = {
         }
         Relationships: []
       }
-      subtasks: {
+      sub_tasks: {
         Row: {
           created_at: string
-          done: boolean
           id: string
           name: string | null
           order: number | null
+          status: number
           task_id: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
-          done?: boolean
           id?: string
           name?: string | null
           order?: number | null
+          status?: number
           task_id: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
-          done?: boolean
           id?: string
           name?: string | null
           order?: number | null
+          status?: number
           task_id?: string
           updated_at?: string | null
           user_id?: string

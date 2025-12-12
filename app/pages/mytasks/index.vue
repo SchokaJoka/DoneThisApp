@@ -1,29 +1,30 @@
 <template>
-  <div class="bg-bg-surface w-screen ">
-    <div class="flex flex-col w-full h-fit p-4 gap-4">
-      <div class="w-full">
-        <p class="overview-label text-text-secondary">Kategorien</p>
+  <div class="w-full h-full">
+    <div class="bg-bg-surface w-full">
+      <div class="flex flex-col w-full h-fit p-4 gap-4">
+        <div class="w-full">
+          <p class="overview-label text-text-secondary">Kategorien</p>
+        </div>
       </div>
-    </div>
-    <div class="flex w-screen gap-4 overflow-x-auto p-4">
-      <div>
-        <CategoryCard :category="{
-          id: 0,
-          name: 'Alle Aufgaben',
-          color: '#9CA3AF'
-        }"
-        :is-active="selectedCategory === 'Alle Aufgaben'"
-        @click="selectCategory"
-        />
-      </div>
-      <div v-for="(category) in categories" :key="category.id">
-        <CategoryCard :category="category" :is-active="selectedCategory === category.name" @click="selectCategory"/>
-      </div>
+      <div class="flex w-full gap-4 overflow-x-scroll p-4">
+        <div>
+          <CategoryCard :category="{
+            id: 0,
+            name: 'Alle Aufgaben',
+            color: '#9CA3AF'
+          }"
+          :is-active="selectedCategory === 'Alle Aufgaben'"
+          @click="selectCategory"
+          />
+        </div>
+        <div v-for="(category) in categories" :key="category.id">
+          <CategoryCard :category="category" :is-active="selectedCategory === category.name" @click="selectCategory"/>
+        </div>
 
+      </div>
     </div>
-  </div>
-  
-  <div class="p-8">
+    
+    <div class="p-4 w-full">
     <div class="w-full">
       <div class="w-full flex flex-row h-fit justify-center mb-4 items-center sticky top-2 z-30">
         <p class="overview-label text-text-primary">{{ userCategoryName }}</p>
@@ -37,30 +38,42 @@
         leave-from-class="opacity-100 translate-y-0"
         leave-to-class="opacity-0 translate-y-4"
       >
-        <div v-if="filteredTasks?.length > 0" :key="selectedCategory" class="flex flex-col">
+        <div v-if="filteredTasks?.length > 0" :key="selectedCategory" class="flex flex-col gap-[30vh] w-full min-h-screen">
           <div 
             v-for="(task, index) in filteredTasks" 
             :key="task.id" 
-            class="w-full flex justify-center items-start sticky top-12 -bottom-115 mt-64 first:mt-0"
+            class="w-full flex justify-center items-start sticky top-16"
           >
               <TaskCard 
               :taskId="task.id" 
-              :enable-rotation="true" />
+              :enable-rotation="false" />
           </div>
-          <div class="h-[60vh]"/>
+          <div class="w-full h-[60vh]"/>
         </div>
         <div v-else class="w-full flex justify-center items-center snap-start">
-          <h1 class="text-text-primary text-center">Keine Aufgaben in {{ userCategoryName }}.</h1>
+          <h1 class="text-text-primary text-center">Keine Aufgaben vorhanden</h1>
         </div>
       </Transition>
     </div>
+  </div>
   </div>
 </template>
     
 <script setup>
 
-const { tasks } = useTasks()
+const { tasks, getTasks } = useTasks()
 const { categories } = useCategories()
+
+onMounted(async () => {
+  if (!tasks.value.length) {
+    console.log('Fetching tasks in MyTasks page...')
+    await getTasks()
+  }
+})
+
+const taskInbox = computed(() => {
+  return tasks.value.filter(task => task.status === 0)
+})
 
 const selectedCategory = ref('Alle Aufgaben')
 const userCategoryName = ref('Alle Aufgaben')
@@ -72,11 +85,11 @@ function selectCategory(categoryName, usCaNa) {
 
 const filteredTasks = computed(() => {
   if (selectedCategory.value === 'Alle Aufgaben') {
-    return tasks.value
+    return taskInbox.value
   }
   const category = categories.value.find(c => c.name === selectedCategory.value)
-  if (!category) return tasks.value
-  return tasks.value.filter(task => task.category_id === category.id)
+  if (!category) return taskInbox.value
+  return taskInbox.value.filter(task => task.category_id === category.id)
 })
 
 </script>

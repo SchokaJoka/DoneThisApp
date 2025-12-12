@@ -1,41 +1,68 @@
 <template>
-    <div class="perspective-1000 flex justify-center items-center">
+    <div class="perspective-1000 w-full flex justify-center items-center">
         <div 
-            class="transition-transform duration-700 transform-style-3d flex justify-center items-center"
+            class="transition-transform ease-in-out duration-300 transform-style-3d w-full flex justify-center items-center"
             :style="{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }"
         >
             <!-- Front of card -->
-            <div class="w-[360px] h-[550px] backface-hidden flex flex-col justify-center items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
+            <div class="w-full max-w-[370px] h-[600px] max-h-[75vh] backface-hidden py-4 px-6 flex flex-col justify-between items-center bg-cover bg-center rounded-2xl bg-bg-fill" :style="{ transform: `rotate(${rotation}deg)`, backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none'  }">
 
-                <div class="w-full h-full pt-4 px-6 flex flex-col items-start">
-                    <div class="w-full  pb-12 flex justify-between self-stretch">
-                        <div class="flex">
+                <div class="flex flex-col w-full flex-1 min-h-0 overflow-hidden">
+                    <div class="flex flex-row justify-between items-center mb-6 shrink-0">
+                        <div class="">
                             <span>
                                 {{ userCategoryName }}
                             </span>
                         </div>
-                        <div v-if="task.due_date" class="flex">
+                        <div v-if="task.due_date" class="">
                             <span>
                                 {{ formatDate(task.due_date) }}
-                                <span v-if="task.due_time"> {{ task.due_time }}</span>
+                                <span v-if="task.due_time"> {{ formatTime(task.due_time) }}</span>
                             </span>
                         </div>
                     </div>
-                    <div class="w-full flex flex-col gap-4 items-start">
-                        <div class="w-full">
+                    <div class="flex flex-col gap-4 mb-6 shrink-0">
+                        <div class="">
                             <h1>
                             {{ task.name }}
                             </h1>
                         </div>
-                        <div class="w-full">
+                        <div class="">
                             <p>
                             {{ task.description }}
                             </p>
                         </div>
                     </div>
+                    <div 
+                        v-if="subTasks && subTasks.length > 0" 
+                        ref="subtasksContainer"
+                        class="subtasks-scroll w-full flex-1 min-h-0 overflow-y-auto"
+                        @touchstart.passive="onTouchStart"
+                        @touchmove.prevent="onTouchMove"
+                    >
+                        <div class="flex flex-col gap-4 pb-2">
+                            <div 
+                                v-for="subtask in sortedSubTasks" 
+                                :key="subtask.id" 
+                                class="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors"
+                                @click.stop="handleToggleSubtask(subtask)"
+                            >
+                                <input 
+                                    type="checkbox" 
+                                    :checked="subtask.status" 
+                                    class="w-4 h-4 shrink-0 cursor-pointer accent-orange-500"
+                                    @click.stop="handleToggleSubtask(subtask)"
+                                />
+                                <span :class="subtask.status ? 'line-through opacity-50' : ''">
+                                    {{ subtask.name }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="w-full flex justify-center items-center gap-4 pb-4 px-4 self-stretch">
+                <div class="flex flex-row justify-between items-center w-full mb-4 gap-4">
                     <button @click.stop="editTask" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
                         <div class="size-6 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
@@ -52,7 +79,7 @@
                             </svg>
                         </div>
                     </button>
-                    <button class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
+                    <button @click.stop="completeTask" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
                         <div class="size-6 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
                             <g clip-path="url(#clip0_2523_8899)">
@@ -66,7 +93,7 @@
                             </svg>
                         </div>
                     </button>
-                    <button class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
+                    <button @click.stop="focusTask" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
                         <div class="size-6 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
                             <g clip-path="url(#clip0_2492_8653)">
@@ -83,86 +110,46 @@
                 </div>
             </div>
 
+            <!-- Focus warning overlay -->
+            <Transition name="fade">
+                <div 
+                    v-if="showFocusWarning" 
+                    class="fixed bg-bg-overlay w-full max-w-[370px] h-[600px] max-h-[75vh] pt-4 px-6 pb-4 flex flex-col justify-center items-center rounded-2xl"
+                    @click.stop="showFocusWarning = false"
+                >
+                    <div class="bg-bg p-4 rounded-xl text-center" @click.stop>
+                        <div class="text-4xl mb-4">🎯</div>
+                        <h3 class="text-2xl font-semibold text-text-primary mb-2">Du hast bereits eine Aufgabe im Fokus</h3>
+                        <h3 class="text-text-primary text-lg mb-4">Versuche nicht, alles gleichzeitig zu machen.</h3> 
+                        <button 
+                            @click.stop="showFocusWarning = false"
+                            class="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                        >
+                            Verstanden
+                        </button>
+                    </div>
+                </div>
+            </Transition>
+
             <!-- Back of card (Edit form) -->
-            <div class="absolute inset-0 backface-hidden flex flex-col justify-between items-start p-[11px] rounded-[21px]" :style="{ transform: 'rotateY(180deg)', backgroundColor: category?.color || '#FFF7ED' }">
-                <div class="w-full h-full overflow-y-auto space-y-4 pb-4">
-                    <h2 class="text-xl font-semibold mb-4">Edit Task</h2>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Task Name</label>
-                        <input
-                            v-model="editForm.name"
-                            type="text"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        />
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                        <textarea
-                            v-model="editForm.description"
-                            rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        ></textarea>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                            <input
-                                v-model="editForm.due_date"
-                                type="date"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                            />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Due Time</label>
-                            <input
-                                v-model="editForm.due_time"
-                                type="time"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Subtasks</label>
-                        <div class="space-y-2">
-                            <div v-for="(subtask, index) in editForm.subtasks" :key="index" class="flex gap-2">
-                                <input
-                                    v-model="subtask.text"
-                                    type="text"
-                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                                />
-                                <button @click.stop="removeSubtask(index)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200">
-                                    ✕
-                                </button>
-                            </div>
-                            <button @click.stop="addSubtask" class="w-full px-3 py-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200">
-                                + Add Subtask
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="w-full flex gap-2">
-                    <button @click.stop="cancelEdit" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
-                        Cancel
-                    </button>
-                    <button @click.stop="saveEdit" class="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
-                        Save
-                    </button>
-                </div>
-            </div>
+            <EditCard 
+                :task="task"
+                :sub-tasks="subTasks"
+                :category-color="category?.color || '#FFF7ED'"
+                @cancel="cancelEdit"
+                @save="onEditSaved"
+                @delete="onEditDeleted"
+            />
         </div>
     </div>
 </template>
 
 <script setup>
-const { tasks, task, updateTask, deleteTask, getTasks, getTask} = useTasks()
+const { tasks, task, updateTask, getTasks, getTask, getHasFocus, hasTaskInFocus } = useTasks()
 const { loadingGroups, errorGroups, groups, getGroups, getGroup} = useGroups()
 const { categories } = useCategories()
 const { userCategories } = useUserCategories()
+const { getSubTasks, subTasks, toggleSubTaskStatus } = useSubTasks()
 
 const props = defineProps({
     taskId: {
@@ -197,6 +184,17 @@ const group = computed(() => {
     return groups.value.find(g => g && g.id === task.value.group_id) || null
 })
 
+// Sort subtasks: incomplete first, then completed
+const sortedSubTasks = computed(() => {
+    if (!subTasks.value) return []
+    return [...subTasks.value].sort((a, b) => {
+        // Sort by status first (0 = incomplete comes before 1 = complete)
+        if (a.status !== b.status) return a.status - b.status
+        // Then by order
+        return (a.order ?? 0) - (b.order ?? 0)
+    })
+})
+
 onMounted(async () => {
     if (props.enableRotation) {
         const seed = String(task.value?.id || '')
@@ -204,13 +202,15 @@ onMounted(async () => {
         rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
     }
     getTask(props.taskId)
+    getSubTasks(props.taskId)
 })
 
 // Computed property to get the background image URL
 const backgroundImageUrl = computed(() => {
-    if (!category.value?.name || !group.value?.id) return ''
+    const randomNum = Math.floor(Math.random() * 20) + 1
+    if (!category.value?.name || !group.value?.id) return '/img/default.webp'
     try {
-        return `/img/bg-card/${group.value.id}/${category.value.name}.webp`
+        return `/img/bg-card/${group.value.id}/${category.value.name}-${randomNum}.png`
     } catch (e) {
         console.error('Error loading background image:', e)
         return ''
@@ -219,12 +219,10 @@ const backgroundImageUrl = computed(() => {
 
 const rotation = ref(0)
 const isFlipped = ref(false)
-const editForm = ref({
-    name: '',
-    description: '',
-    due_date: '',
-    due_time: ''
-})
+const showFocusWarning = ref(false)
+const subtasksContainer = ref(null)
+let touchStartY = 0
+let scrollStartTop = 0
 
 // Recompute rotation if the task id changes (keeps rotation consistent per id)
 watch(() => task.value?.id, (id) => {
@@ -234,50 +232,109 @@ watch(() => task.value?.id, (id) => {
     rotation.value = props.minRotation + t * (props.maxRotation - props.minRotation)
 })
 
-function handleDelete() {
-    return
-}
-
 function editTask() {
-    editForm.value = {
-        name: task.value.name || '',
-        description: task.value.description || '',
-        due_date: task.value.due_date || '',
-        due_time: task.value.due_time || ''
-    }
     isFlipped.value = true
 }
 
 function cancelEdit() {
     isFlipped.value = false
-    editForm.value = {
-        name: task.value.name,
-        description: task.value.description,
-        due_date: task.value.due_date,
-        due_time: task.value.due_time,
-    }
 }
 
-function saveEdit() {
+function onEditSaved() {
     isFlipped.value = false
-    updateTask(task.value.id, {
-        name: editForm.value.name,
-        description: editForm.value.description,
-        due_date: editForm.value.due_date,
-        due_time: editForm.value.due_time,
-    })
-    getTask(props.taskId)
+}
+
+function onEditDeleted() {
+    isFlipped.value = false
+}
+
+// Toggle subtask status on front card (immediate save)
+async function handleToggleSubtask(subtask) {
+    const newStatus = subtask.status ? 0 : 1
+    await toggleSubTaskStatus(subtask.id, subtask.status)
+    // Refresh subtasks to get updated order
+    await getSubTasks(props.taskId)
+}
+
+// Mark task as complete (status = 2)
+async function completeTask() {
+    await updateTask(task.value.id, { status: 2 })
+    // Remove from local tasks array
+    tasks.value = tasks.value.filter(t => t.id !== task.value.id)
+}
+
+// Focus on task (status = 1) - only if no other task is focused
+async function focusTask() {
+    await getHasFocus()
+    if (hasTaskInFocus.value) {
+        showFocusWarning.value = true
+    } else {
+        await updateTask(task.value.id, { status: 1 })
+        // Remove from local tasks array
+        tasks.value = tasks.value.filter(t => t.id !== task.value.id)
+        navigateTo('/focus')
+    }
+    
+}
+
+// Touch scroll handlers for iOS
+function onTouchStart(e) {
+    if (!subtasksContainer.value) return
+    touchStartY = e.touches[0].clientY
+    scrollStartTop = subtasksContainer.value.scrollTop
+}
+
+function onTouchMove(e) {
+    if (!subtasksContainer.value) return
+    const touchY = e.touches[0].clientY
+    const deltaY = touchStartY - touchY
+    subtasksContainer.value.scrollTop = scrollStartTop + deltaY
 }
 
 function formatDate(dateString) {
     if (!dateString) return ''
-    const date = new Date(dateString)
-    if (isNaN(date)) return ''
+    
+    // Parse date string as local date (avoids timezone issues with YYYY-MM-DD format)
+    const [year, month, day] = dateString.split('-').map(Number)
+    const date = new Date(year, month - 1, day)
+    if (isNaN(date.getTime())) return ''
+    
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    const diffTime = date.getTime() - today.getTime()
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+    
+    // Relative dates for nearby days
+    const relativeDates = {
+        '-1': 'Gestern',
+        '0': 'Heute',
+        '1': 'Morgen',
+        '2': 'Übermorgen'
+    }
+    
+    if (relativeDates[diffDays] !== undefined) {
+        return relativeDates[diffDays]
+    }
+    
+    // Show weekday for dates within the next 7 days
+    if (diffDays > 0 && diffDays <= 7) {
+        return date.toLocaleDateString('de-CH', { weekday: 'long' })
+    }
+    
+    // Full date for everything else
     return date.toLocaleDateString('de-CH', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
     })
+}
+
+function formatTime(timeString) {
+    if (!timeString) return ''
+    const parts = timeString.split(':')
+    if (parts.length < 2) return timeString
+    return `${parts[0]}:${parts[1]} Uhr`
 }
 
 function hashToUnit(s) {
@@ -303,5 +360,20 @@ function hashToUnit(s) {
 
 .backface-hidden {
     backface-visibility: hidden;
+}
+
+.subtasks-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
 }
 </style>
