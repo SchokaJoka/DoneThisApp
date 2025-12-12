@@ -25,6 +25,7 @@ const assistantMessage = ref([
 ]);
 const displayedText = ref("");
 const isTyping = ref(false);
+const typedMessage = ref("");
 
 const userTask = ref({
   showDraft: false,
@@ -175,8 +176,15 @@ watch(
     }
 
     // Find the color key that matches the category name in categoryOptions
+    // If the value is already a color key (e.g. assistant returns the key), use it directly
+    if (categoryOptions.value && categoryOptions.value[newCategoryUserName]) {
+      userTask.value.categoryName = newCategoryUserName;
+      return;
+    }
+
+    // Otherwise try to find the color key by matching the display name
     const colorKey = Object.entries(categoryOptions.value).find(
-      ([key, name]) => name.toLowerCase() === newCategoryUserName.toLowerCase()
+      ([key, name]) => name && name.toLowerCase() === newCategoryUserName.toLowerCase()
     )?.[0];
 
     if (!colorKey) {
@@ -225,38 +233,40 @@ async function handleUserAudio() {
     console.log("No file path returned from uploadAudio()");
     return;
   }
+  // After audio transcription, call shared draft fetch
+  await fetchAssistantDraft();
+}
 
-  const draftTask = ref({
+// Shared function to request a draft from the assistant based on current transcript and userTask
+async function fetchAssistantDraft() {
+  const draftTask = {
     name: userTask.value.name,
     description: userTask.value.description,
     category: userTask.value.categoryUserName,
     due_date: userTask.value.due_date,
     due_time: userTask.value.due_time,
     type: userTask.value.groupName,
-    subtasks: userTask.value.subTasks
-      .map((st) => st.name)
-      .filter((name) => name),
-  });
-
-  console.log("Draft task before AI processing:", draftTask.value);
+    subtasks: userTask.value.subTasks.map((st) => st.name).filter((name) => name),
+  };
 
   assistantResponse.value = await getAssistantDraft(
     userTranscript.value,
-    draftTask.value,
+    draftTask,
     userCategories.value,
-    groups.value
+    groups.value,
+    assistantMessage.value // pass assistant's previous messages so the draft API has context
   );
 
-  assistantDraft.value = assistantResponse.value.draftResponse.task;
-  assistantMessage.value.push(assistantResponse.value.draftResponse.aiMessage);
+  assistantDraft.value = assistantResponse.value.draftResponse.task || {};
+  if (assistantResponse.value.draftResponse.aiMessage) {
+    assistantMessage.value.push(assistantResponse.value.draftResponse.aiMessage);
+  }
 
   // Process subtasks from AI response
   const aiSubtasks = assistantResponse.value.draftResponse.subtasks;
   if (aiSubtasks) {
-    // Convert subtasks object to array format
     const subtaskEntries = Object.entries(aiSubtasks);
-    subtaskEntries.forEach(([key, name], index) => {
-      // Check if subtask with same name already exists
+    subtaskEntries.forEach(([key, name]) => {
       const exists = userTask.value.subTasks.some((st) => st.name === name);
       if (!exists) {
         userTask.value.subTasks.push({
@@ -268,15 +278,34 @@ async function handleUserAudio() {
     });
   }
 
-  userTask.value.categoryUserName = assistantDraft.value.category || "";
+  // Map AI-provided category to the select's display name.
+  const aiCategory = assistantDraft.value.category || "";
+  if (aiCategory) {
+    // If AI returned a color key, look up the display name from `categoryOptions`.
+    if (categoryOptions.value && categoryOptions.value[aiCategory]) {
+      userTask.value.categoryUserName = categoryOptions.value[aiCategory];
+    } else {
+      // Otherwise assume AI returned the display name already.
+      userTask.value.categoryUserName = aiCategory;
+    }
+  } else {
+    userTask.value.categoryUserName = "";
+  }
   userTask.value.description = assistantDraft.value.description || "";
   userTask.value.due_date = assistantDraft.value.due_date || "";
   userTask.value.due_time = assistantDraft.value.due_time || "";
   userTask.value.name = assistantDraft.value.name || "";
   userTask.value.groupName = assistantDraft.value.type || "";
   userTask.value.showDraft = true;
+}
 
-  return;
+// Send manual typed message to the assistant (adds to transcript and requests draft)
+async function sendTypedMessage() {
+  const text = (typedMessage.value || "").trim();
+  if (!text) return;
+  userTranscript.value.push(text);
+  typedMessage.value = "";
+  await fetchAssistantDraft();
 }
 
 async function handleStopRecording() {
@@ -343,9 +372,13 @@ async function addTask() {
   const { createSubTasks } = useSubTasks();
   const createdTask = await createTask(userTask.value);
   console.log("Created Task:", createdTask);
+  console.log("userTask.subTasks:", userTask.value.subTasks);
+  console.log("subTasks length:", userTask.value.subTasks.length);
   // Create subtasks if any exist
   if (createdTask?.id && userTask.value.subTasks.length > 0) {
-    const validSubTasks = userTask.value.subTasks
+    console.log("Condition met: createdTask.id exists and subTasks.length > 0");
+    const validSubTasks = userTask.value.subTasks.filter(st => st.name && st.name.trim())
+    console.log("validSubTasks:", validSubTasks);
     if (validSubTasks.length > 0) {
       const createdSubTasks = await createSubTasks(
         createdTask.id,
@@ -355,6 +388,8 @@ async function addTask() {
     } else {
       console.log("No valid subtasks to create.");
     }
+  } else {
+    console.log("Condition not met: createdTask.id =", createdTask?.id, "subTasks.length =", userTask.value.subTasks.length);
   }
   navigateTo("/mytasks");
 }
@@ -362,7 +397,7 @@ async function addTask() {
 
 <template>
   <div class="h-[93vh] w-full fixed top-0 left-0 flex flex-col justify-center items-center">
-    <div class="w-full flex flex-col">
+    <div class="w-full flex flex-col items-center">
       <TransitionGroup 
         name="move-animation"
       >
@@ -379,10 +414,10 @@ async function addTask() {
       <div
         v-if="userTask.showDraft"
         key="user-task"
-        class="w-full max-h-[50vh] z-1 flex justify-center items-start px-4 pt-4"
+        class="w-full max-h-[60vh] z-1 flex justify-center items-start px-4 pt-4"
       >
         <div
-          class="w-[360px] flex flex-col justify-start items-start bg-bg-surface p-4 rounded-[21px] gap-4 overflow-hidden"
+          class="w-[360px] max-h-[60vh] flex flex-col justify-start items-start bg-bg-surface p-4 rounded-[21px] gap-4 overflow-hidden"
           :style="{ backgroundColor: categoryColors.color }"
         >
           <div
@@ -455,7 +490,7 @@ async function addTask() {
           </div>
 
           <!-- Subtasks -->
-          <div class="w-full flex flex-col gap-2">
+          <div class="w-full flex flex-col gap-2 max-h-[40vh] overflow-y-auto">
             <div
               v-for="(subtask, index) in userTask.subTasks"
               :key="index"
@@ -492,7 +527,7 @@ async function addTask() {
             </div>
             <button
               @click.stop="addSubtask"
-              class="w-full px-4 py-3 rounded-lg text-text-primary font-medium transition-colors"
+              class="w-full px-4 py-3 rounded-lg text-text-primary font-medium transition-colors sticky bottom-0"
               :style="{ backgroundColor: categoryColors.color_dark }"
             >
               + Add Subtask
@@ -615,12 +650,12 @@ async function addTask() {
       <!-- Recording button -->
       <div
         key="recording-section"
-        class="w-full flex justify-center items-center p-4 mb-8"
+        class="w-full max-w-[500px] flex justify-center items-center p-4 mb-8"
       >
           <TransitionGroup
             v-if="showContent"
             tag="div"
-            class="flex justify-center items-center gap-4"
+            class="flex w-full justify-center items-center gap-4"
             enter-active-class="transition-all duration-500 ease-out"
             enter-from-class="opacity-0 scale-75"
             enter-to-class="opacity-100 scale-100"
@@ -628,18 +663,30 @@ async function addTask() {
             leave-from-class="opacity-100 scale-100"
             leave-to-class="opacity-0 scale-75"
           >
-            <button
-              v-if="!userTask.showDraft"
-              @click="userTask.showDraft = true"
-              class="h-16 px-6 flex items-center justify-center bg-btn-primary hover:bg-btn-primary-hover text-text-secondary rounded-lg transition-all font-medium"
-            >
-              Manual Creation
-            </button>
+            <div class="relative h-16 w-full max-w-[480px]" key="user-input">
+              <input
+                v-model="typedMessage"
+                @keyup.enter="sendTypedMessage()"
+                :placeholder="'Beschreibe deine Aufgabe...'
+                "
+                class="w-full h-full pr-12 pl-4 rounded-lg outline-none text-text-primary placeholder-text-primary transition-colors bg-primary/50"
+              />
+              <button
+                @click="sendTypedMessage()"
+                aria-label="Senden"
+                class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-btn-primary hover:bg-btn-primary-hover text-text-secondary transition-all z-10"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" class="stroke-current">
+                  <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
             <button
               key="mic-btn"
               @click="isRecording ? handleStopRecording() : startRecording()"
               :class="[
-                'flex items-center justify-center w-16 h-16 rounded-full transition-all',
+                'flex items-center justify-center w-16 h-16 rounded-full shrink-0 transition-all',
                 isRecording
                   ? 'bg-accent hover:bg-accent-hover animate-pulse text-white'
                   : 'bg-btn-primary hover:bg-btn-primary-hover text-text-secondary',

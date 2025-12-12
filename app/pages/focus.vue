@@ -8,7 +8,7 @@
               : 'none',
           }"
         >
-            <div class="w-full h-full bg-bg-overlay py-4 px-4 flex justify-center">
+            <div v-if="task && task.id" class="w-full h-full bg-bg-overlay py-4 px-4 flex justify-center">
                 <div class="flex flex-col w-full max-w-[500px]">
                   <div class="flex flex-row justify-between items-center mb-6 shrink-0">
                     <div class="">
@@ -111,7 +111,18 @@
 
                     </div>
                 </div>
-            </div>
+              </div>
+              <div v-else class="w-full h-full bg-bg-overlay py-4 px-4 flex flex-col justify-center items-center text-center gap-4">
+                <div class="max-w-[600px]">
+                  <h2 class="text-white text-2xl mb-2">Keine Aufgabe im Fokus</h2>
+                  <p class="text-white/80 mb-4">Es ist derzeit keine Aufgabe für den Fokus ausgewählt.</p>
+                  <p class="text-white/80">So setzt du eine Aufgabe in den Fokus:</p>
+                  <ul class="text-white/70 mt-2 list-disc list-inside">
+                    <li>Öffne deine Aufgabenliste (My Tasks).</li>
+                    <li>Wähle eine Aufgabe und tippe auf das Fokus-Icon oder "In Fokus setzen".</li>
+                  </ul>
+                </div>
+              </div>
         </div>
     </div>
 </template>
@@ -174,11 +185,14 @@ const sortedSubTasks = computed(() => {
 
 onMounted(async () => {
   await getFocusTask();
-  await getSubTasks(task.value.id);
-  // Set the first incomplete subtask as focused by default
-  const firstIncomplete = sortedSubTasks.value.find(st => !st.status);
-  if (firstIncomplete) {
-    focusedSubtaskId.value = firstIncomplete.id;
+  // Only load subtasks when a focus task exists
+  if (task.value && task.value.id) {
+    await getSubTasks(task.value.id);
+    // Set the first incomplete subtask as focused by default
+    const firstIncomplete = sortedSubTasks.value.find((st) => !st.status);
+    if (firstIncomplete) {
+      focusedSubtaskId.value = firstIncomplete.id;
+    }
   }
 });
 

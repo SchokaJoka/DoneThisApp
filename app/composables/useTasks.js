@@ -62,7 +62,6 @@ export function useTasks() {
   async function createTask(properties) {
     error.value = null
     loading.value = true
-    const created = ref()
     try {
       const body = {
         name: properties.name,
@@ -74,7 +73,7 @@ export function useTasks() {
         status: properties.status || 0,
       }
 
-      created.value = await $fetch('/api/tasks', {
+      const created = await $fetch('/api/tasks', {
         method: 'POST',
         body
       })
@@ -88,7 +87,6 @@ export function useTasks() {
       return null
     } finally {
       loading.value = false
-      return created
     }
   }
 

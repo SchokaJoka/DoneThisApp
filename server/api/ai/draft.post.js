@@ -30,6 +30,7 @@ export default defineEventHandler(async (event) => {
     You receive:
     - currentDraft: a partial task object (may be empty)
     - userTranscript: the user's spoken input in an array of strings
+    - assistantMessages: an array of previous assistant replies (AI messages) providing conversation context
     - categories: an array of categories provided by the user to choose from
     - types: an array of group names provided by the user to choose from
 
@@ -53,6 +54,10 @@ export default defineEventHandler(async (event) => {
       ]
     4) Identify any fields that are still missing or weakly specified.
     5) Ask ONE clear follow-up question to help complete the task. If everything looks complete, ask a short confirmation question.
+
+    Conversation context guidance:
+    - You may receive assistantMessages (previous AI replies). Use this context to avoid repeating the same follow-up question and to continue the conversation coherently.
+    - Prefer asking a new clarifying question that advances the draft when prior assistant prompts are already present.
 
     Rules:
     - Only set due_date when an exact date is mentioned; otherwise null.
@@ -89,7 +94,8 @@ export default defineEventHandler(async (event) => {
       currentDraft: body.existingDraft ?? null, 
       userTranscript: body.transcript,
       categories: body.categories ?? [],
-      types: body.types ?? []
+      types: body.types ?? [],
+      assistantMessages: body.assistantMessages ?? []
     }) 
   }
 

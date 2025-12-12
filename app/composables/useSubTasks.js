@@ -14,47 +14,54 @@ export function useSubTasks() {
       subTasks.value = response
       return response
     } catch (err) {
+      console.log('Error fetching subtasks:', err)
       errorSubTasks.value = err?.message || String(err)
       return []
     } finally {
       loadingSubTasks.value = false
-      console.log('Fetched subtasks:', subTasks.value)
     }
   }
 
-  async function createSubTask(taskId, properties) {
-    errorSubTasks.value = null
-    loadingSubTasks.value = true
+  // async function createSubTask(taskId, properties) {
+  //   console.log('createSubTask called with taskId:', taskId, 'properties:', properties)
+  //   errorSubTasks.value = null
+  //   loadingSubTasks.value = true
 
-    try {
-      const body = {
-        name: properties.name || null,
-        order: properties.order ?? subTasks.value.length,
-        status: properties.status ?? 0,
-      }
+  //   try {
+  //     const body = {
+  //       name: properties.name || null,
+  //       order: properties.order ?? subTasks.value.length,
+  //       status: properties.status ?? 0,
+  //     }
+  //     console.log('Creating subtask with body:', body)
 
-      const created = await $fetch(`/api/subTasks/${taskId}`, {
-        method: 'POST',
-        body: [body] // Send as array, get first item back
-      })
+  //     const created = await $fetch(`/api/subTasks/${taskId}`, {
+  //       method: 'POST',
+  //       body: [body] // Send as array, get first item back
+  //     })
+  //     console.log('Created subtask response:', created)
 
-      if (created && created.length > 0) {
-        subTasks.value.push(created[0])
-        return created[0]
-      }
-      return null
-    } catch (err) {
-      errorSubTasks.value = err?.message || String(err)
-      return null
-    } finally {
-      loadingSubTasks.value = false
-    }
-  }
+  //     if (created && created.length > 0) {
+  //       subTasks.value.push(created[0])
+  //       console.log('Added subtask to local state:', created[0])
+  //       return created[0]
+  //     }
+  //     return null
+  //   } catch (err) {
+  //     console.log('Error creating subtask:', err)
+  //     errorSubTasks.value = err?.message || String(err)
+  //     return null
+  //   } finally {
+  //     loadingSubTasks.value = false
+  //   }
+  // }
 
   // Batch create multiple subtasks for a task
   async function createSubTasks(taskId, subtasksArray) {
+    console.log('createSubTasks called with taskId:', taskId, 'subtasksArray:', subtasksArray)
     if (!subtasksArray || subtasksArray.length === 0) return []
-    
+    console.log('Creating multiple subtasks:', subtasksArray)
+    console.log('For task ID:', taskId)
     errorSubTasks.value = null
     loadingSubTasks.value = true
 
@@ -65,18 +72,22 @@ export function useSubTasks() {
         status: st.status ?? 0,
       }))
 
+      console.log('Request body for creating subtasks:', body)
+
       const created = await $fetch(`/api/subTasks/${taskId}`, {
         method: 'POST',
         body
       })
+      console.log('Created subtasks response:', created)
 
       if (created && created.length > 0) {
         subTasks.value.push(...created)
+        console.log('Added subtasks to local state:', created)
+        
       }
       return created || []
     } catch (err) {
-      errorSubTasks.value = err?.message || String(err)
-      return []
+      console.log('Error creating subtasks:', err)
     } finally {
       loadingSubTasks.value = false
     }
@@ -91,7 +102,6 @@ export function useSubTasks() {
         method: 'PATCH',
         body: { updates }
       })
-
       // update local state
       const index = subTasks.value.findIndex(st => st.id === subTaskId)
       if (index !== -1 && response) {
@@ -131,6 +141,7 @@ export function useSubTasks() {
 
       return true
     } catch (err) {
+      console.log('Error deleting subtask:', err)
       errorSubTasks.value = err?.message || String(err)
       return false
     } finally {
@@ -156,7 +167,7 @@ export function useSubTasks() {
     errorSubTasks,
     subTasks,
     getSubTasks,
-    createSubTask,
+    // createSubTask,
     createSubTasks,
     updateSubTask,
     deleteSubTask,

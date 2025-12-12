@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Get task_id from URL parameter
-  const taskId = getRouterParam(event, 'taskId');
+  const taskId = getRouterParam(event, 'id');
   if (!taskId) {
     throw createError({ statusCode: 400, statusMessage: "taskId is required" });
   }
