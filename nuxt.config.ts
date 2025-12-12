@@ -6,6 +6,35 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: false },
   modules: ["@nuxtjs/supabase", "@nuxt/fonts", "nuxt-lottie"],
+  pwa: {
+    meta: {
+      name: 'DoneThis',
+      author: 'DoneThis',
+      description: 'Track and celebrate small wins',
+      theme_color: '#0ea5a4',
+      lang: 'en',
+      mobileApp: true,
+      mobileAppIOS: true,
+      ogHost: 'https://your-domain.example'
+    },
+    manifest: {
+      name: 'DoneThis',
+      short_name: 'DoneThis',
+      description: 'Track and celebrate small wins',
+      theme_color: '#0ea5a4',
+      background_color: '#ffffff',
+      display: 'standalone',
+      start_url: '/',
+      lang: 'en',
+      icons: [
+        { src: '/icons/icon.svg', sizes: 'any', type: 'image/svg+xml' }
+      ]
+    },
+    workbox: {
+      enabled: true,
+      navigateFallback: '/'
+    }
+  },
   app: {
     pageTransition: { name: 'page', mode: 'out-in' }
   },
