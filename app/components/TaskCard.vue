@@ -135,7 +135,7 @@
             <EditCard 
                 :task="task"
                 :sub-tasks="subTasks"
-                :category-color="category?.color || '#FFF7ED'"
+                :category-colors="categoryColors"
                 @cancel="cancelEdit"
                 @save="onEditSaved"
                 @delete="onEditDeleted"
@@ -145,12 +145,6 @@
 </template>
 
 <script setup>
-const { tasks, task, updateTask, getTasks, getTask, getHasFocus, hasTaskInFocus } = useTasks()
-const { loadingGroups, errorGroups, groups, getGroups, getGroup} = useGroups()
-const { categories } = useCategories()
-const { userCategories } = useUserCategories()
-const { getSubTasks, subTasks, toggleSubTaskStatus } = useSubTasks()
-
 const props = defineProps({
     taskId: {
         type: String,
@@ -169,6 +163,19 @@ const props = defineProps({
         default: 4
     }
 })
+
+const { tasks, task: taskRef, updateTask, getTasks, getTask, getHasFocus, hasTaskInFocus } = useTasks()
+
+// Prefer the task from the tasks array so changes to `tasks` propagate here.
+const task = computed(() => {
+    const found = tasks.value && tasks.value.find(t => t.id === props.taskId)
+    return found || taskRef.value || {}
+})
+const { loadingGroups, errorGroups, groups, getGroups, getGroup} = useGroups()
+const { categories } = useCategories()
+const { userCategories } = useUserCategories()
+const { getSubTasks, subTasks, toggleSubTaskStatus } = useSubTasks()
+
 
 const category = computed(() => {
     return categories.value.find(cat => cat.id === task.value.category_id) || null
@@ -261,6 +268,7 @@ async function completeTask() {
     await updateTask(task.value.id, { status: 2 })
     // Remove from local tasks array
     tasks.value = tasks.value.filter(t => t.id !== task.value.id)
+    navigateTo('/archive')
 }
 
 // Focus on task (status = 1) - only if no other task is focused
@@ -347,6 +355,24 @@ function hashToUnit(s) {
     }
     return (h >>> 0) / 4294967295
 }
+
+
+const categoryColors = computed(() => {
+  if (!task.value.category_id) {
+    return { color: "#E8E8E8", color_light: "#FFFEEB", color_dark: "#C2C2C2" };
+  }
+  const category = categories.value.find(
+    (cat) => cat.id === task.value.category_id
+  );
+  if (!category) {
+    return { color: "#E8E8E8", color_light: "#FFFEEB", color_dark: "#C2C2C2" };
+  }
+  return {
+    color: category.color,
+    color_light: category.color_light,
+    color_dark: category.color_dark,
+  };
+});
 </script>
 
 <style scoped>

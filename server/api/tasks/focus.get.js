@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     .select('*')
     .eq('user_id', uid)
     .eq('status', 1)
-    .single()
+    // return multiple rows (do not use .single() when expecting an array)
 
   if (error) {
     console.error('[api/tasks.get] supabase error:', error)

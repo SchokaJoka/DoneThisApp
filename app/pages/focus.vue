@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full h-full flex justify-center items-center bg-bg-surface">
+    <div class="w-full h-full flex justify-center items-center">
         <div
           class="w-full h-full flex flex-col justify-between items-center bg-cover bg-center bg-bg-fill"
           :style="{
@@ -8,30 +8,30 @@
               : 'none',
           }"
         >
-            <div v-if="task && task.id" class="w-full h-full bg-bg-overlay py-4 px-4 flex justify-center">
-                <div class="flex flex-col w-full max-w-[500px]">
+            <div v-if="focusedTask && focusedTask.id" class="w-full h-full bg-bg-overlay py-4 px-4 flex justify-center">
+                <div class="flex flex-col w-full max-w-[600px]">
                   <div class="flex flex-row justify-between items-center mb-6 shrink-0">
                     <div class="">
                       <span>
                         {{ userCategoryName }}
                       </span>
                     </div>
-                    <div v-if="task.due_date" class="">
+                    <div v-if="focusedTask.due_date" class="">
                       <span>
-                        {{ formatDate(task.due_date) }}
-                        <span v-if="task.due_time"> {{ formatTime(task.due_time) }}</span>
+                        {{ formatDate(focusedTask.due_date) }}
+                        <span v-if="focusedTask.due_time"> {{ formatTime(focusedTask.due_time) }}</span>
                       </span>
                     </div>
                   </div>
                   <div class="flex flex-col gap-4 mb-6">
                     <div class="text-white">
                       <h1>
-                        {{ task.name }}
+                        {{ focusedTask.name }}
                       </h1>
                     </div>
                     <div class="text-white">
                       <p>
-                        {{ task.description }}
+                        {{ focusedTask.description }}
                       </p>
                     </div>
                   </div>
@@ -72,7 +72,7 @@
                   </div>
                 </div>
                 <div class="fixed bottom-16 left-0 right-0 flex justify-center items-center w-full p-4 mb-4 gap-4">
-                    <div class="w-full max-w-[500px] flex flex-row justify-between items-center gap-4">
+                    <div class="w-full max-w-[600px] flex flex-row justify-between items-center gap-4">
                         <button
                             class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg"
                             @click.stop="handlePause"
@@ -112,15 +112,10 @@
                     </div>
                 </div>
               </div>
-              <div v-else class="w-full h-full bg-bg-overlay py-4 px-4 flex flex-col justify-center items-center text-center gap-4">
+              <div v-else class="w-full h-full py-4 px-4 flex flex-col justify-center items-center text-center gap-4">
                 <div class="max-w-[600px]">
-                  <h2 class="text-white text-2xl mb-2">Keine Aufgabe im Fokus</h2>
-                  <p class="text-white/80 mb-4">Es ist derzeit keine Aufgabe für den Fokus ausgewählt.</p>
-                  <p class="text-white/80">So setzt du eine Aufgabe in den Fokus:</p>
-                  <ul class="text-white/70 mt-2 list-disc list-inside">
-                    <li>Öffne deine Aufgabenliste (My Tasks).</li>
-                    <li>Wähle eine Aufgabe und tippe auf das Fokus-Icon oder "In Fokus setzen".</li>
-                  </ul>
+                  <h2 class="text-text-primary text-2xl mb-2">Keine Aufgabe im Fokus</h2>
+                  <p class="text-text-primary/80 mb-4">Es ist derzeit keine Aufgabe für den Fokus ausgewählt.</p>
                 </div>
               </div>
         </div>
@@ -156,9 +151,16 @@ const editSubTasks = ref([]);
 const deletedSubTaskIds = ref([]);
 const focusedSubtaskId = ref(null);
 
+// Ensure we handle the case where `task.value` may be an array (API returned rows)
+const focusedTask = computed(() => {
+  if (!task.value) return null
+  if (Array.isArray(task.value)) return task.value[0] || null
+  return task.value || null
+})
+
 const category = computed(() => {
   return (
-    categories.value.find((cat) => cat.id === task.value.category_id) || null
+    categories.value.find((cat) => cat.id === focusedTask.value?.category_id) || null
   );
 });
 
@@ -169,7 +171,7 @@ const userCategoryName = computed(() => {
 });
 
 const group = computed(() => {
-  return groups.value.find((g) => g && g.id === task.value.group_id) || null;
+  return groups.value.find((g) => g && g.id === focusedTask.value?.group_id) || null;
 });
 
 // Sort subtasks: incomplete first, then completed
@@ -186,25 +188,28 @@ const sortedSubTasks = computed(() => {
 onMounted(async () => {
   await getFocusTask();
   // Only load subtasks when a focus task exists
-  if (task.value && task.value.id) {
-    await getSubTasks(task.value.id);
+  if (focusedTask.value) {
+    console.log("task in focus:", focusedTask.value);
+    await getSubTasks(focusedTask.value.id);
     // Set the first incomplete subtask as focused by default
     const firstIncomplete = sortedSubTasks.value.find((st) => !st.status);
     if (firstIncomplete) {
       focusedSubtaskId.value = firstIncomplete.id;
     }
+  } else {
+    console.log("No focus task found.");
   }
 });
 
 // Computed property to get the background image URL
 const backgroundImageUrl = computed(() => {
   const randomNum = Math.floor(Math.random() * 20) + 1;
-  if (!category.value?.name || !group.value?.id) return "/img/default.webp";
+  if (!category.value?.name || !group.value?.id) return null;
   try {
     return `/img/bg-card/${group.value.id}/${category.value.name}-${randomNum}.png`;
   } catch (e) {
     console.error("Error loading background image:", e);
-    return "";
+    return null;
   }
 });
 // Toggle subtask status on front card (immediate save)
@@ -212,7 +217,7 @@ async function handleToggleSubtask(subtask) {
   const newStatus = subtask.status ? 0 : 1;
   await toggleSubTaskStatus(subtask.id, subtask.status);
   // Refresh subtasks to get updated order
-  await getSubTasks(task.value.id);
+  await getSubTasks(focusedTask.value.id);
   // If completed subtask was focused, move focus to next incomplete
   if (focusedSubtaskId.value === subtask.id && newStatus === 1) {
     const nextIncomplete = sortedSubTasks.value.find(st => !st.status);
@@ -225,15 +230,15 @@ function focusSubtask(subtask) {
 }
 
 async function handlePause() {
-    await updateTask(task.value.id, { status: 0 });
+  await updateTask(focusedTask.value.id, { status: 0 });
     await getTasks();
     await navigateTo("/mytasks");
 }
 
 async function completeTask() {
-    await updateTask(task.value.id, { status: 2 });
+  await updateTask(focusedTask.value.id, { status: 2 });
     await getTasks();
-    await navigateTo("/mytasks");
+    await navigateTo("/archive");
 }
 
 function formatDate(dateString) {

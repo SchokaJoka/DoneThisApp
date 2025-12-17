@@ -10,7 +10,7 @@ export function useSubTasks() {
     loadingSubTasks.value = true
 
     try {
-      const response = await $fetch(`/api/subTasks/${taskId}`, { method: 'GET' })
+      const response = await $fetch(`/api/subTasks/${taskId}`, { method: 'GET', credentials: 'include' })
       subTasks.value = response
       return response
     } catch (err) {
@@ -76,14 +76,14 @@ export function useSubTasks() {
 
       const created = await $fetch(`/api/subTasks/${taskId}`, {
         method: 'POST',
-        body
+        body,
+        credentials: 'include'
       })
       console.log('Created subtasks response:', created)
 
       if (created && created.length > 0) {
         subTasks.value.push(...created)
         console.log('Added subtasks to local state:', created)
-        
       }
       return created || []
     } catch (err) {
@@ -100,7 +100,8 @@ export function useSubTasks() {
     try {
       const response = await $fetch(`/api/subTasks/${subTaskId}`, {
         method: 'PATCH',
-        body: { updates }
+        body: { updates },
+        credentials: 'include'
       })
       // update local state
       const index = subTasks.value.findIndex(st => st.id === subTaskId)
@@ -128,16 +129,14 @@ export function useSubTasks() {
 
     try {
       await $fetch(`/api/subTasks/${subTaskId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       })
 
       // remove from local state
       subTasks.value = subTasks.value.filter(st => st.id !== subTaskId)
-
       // re-index order locally
-      subTasks.value.forEach((st, idx) => {
-        st.order = idx
-      })
+      subTasks.value.forEach((st, idx) => { st.order = idx })
 
       return true
     } catch (err) {

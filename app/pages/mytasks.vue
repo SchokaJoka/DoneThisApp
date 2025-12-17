@@ -7,20 +7,9 @@
         </div>
       </div>
       <div class="flex w-full gap-4 overflow-x-scroll p-4">
-        <div>
-          <CategoryCard :category="{
-            id: 0,
-            name: 'Alle Aufgaben',
-            color: '#9CA3AF'
-          }"
-          :is-active="selectedCategory === 'Alle Aufgaben'"
-          @click="selectCategory"
-          />
-        </div>
         <div v-for="(category) in categories" :key="category.id">
           <CategoryCard :category="category" :is-active="selectedCategory === category.name" @click="selectCategory"/>
         </div>
-
       </div>
     </div>
     
@@ -75,12 +64,24 @@ const taskInbox = computed(() => {
   return tasks.value.filter(task => task.status === 0)
 })
 
-const selectedCategory = ref('Alle Aufgaben')
+const selectedCategory = ref(null)
 const userCategoryName = ref('Alle Aufgaben')
 
 function selectCategory(categoryName, usCaNa) {
-  selectedCategory.value = categoryName
-  userCategoryName.value = usCaNa
+  // toggle selection: clicking active category deselects and shows all tasks
+  if (!categoryName) {
+    selectedCategory.value = null
+    userCategoryName.value = 'Alle Aufgaben'
+    return
+  }
+
+  if (selectedCategory.value === categoryName) {
+    selectedCategory.value = null
+    userCategoryName.value = 'Alle Aufgaben'
+  } else {
+    selectedCategory.value = categoryName
+    userCategoryName.value = usCaNa || categoryName
+  }
 }
 
 const filteredTasks = computed(() => {

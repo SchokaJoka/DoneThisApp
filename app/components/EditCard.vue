@@ -1,74 +1,100 @@
 <template>
     <div 
-        class="w-full max-w-[370px] h-[600px] max-h-[75vh] flex flex-col justify-between items-start py-4 px-6 rounded-2xl" 
+        class="w-full max-w-[370px] h-[600px] max-h-[75vh] flex flex-col justify-between items-start py-4 px-4 rounded-2xl" 
         :class="isBackOfCard ? 'absolute backface-hidden' : ''"
         :style="{ 
             transform: isBackOfCard ? 'rotateY(180deg)' : 'none', 
-            backgroundColor: categoryColor 
+            backgroundColor: categoryColors.color 
         }"
     >
-        <div class="w-full h-full overflow-y-auto space-y-4 pb-4">
-            <h2 class="text-xl font-semibold mb-4">Edit Task</h2>
+        <div class="w-full h-full flex flex-col gap-4 rounded-lg overflow-y-auto mb-2"> 
             
+            <div class="flex flex-row gap-2 w-full">
+                <div class="w-full">
+                    <select
+                        v-model="localCategoryUserName"
+                        class="w-full h-full p-4 rounded-lg"
+                        :style="{ backgroundColor: categoryColors.color_light }"
+                    >
+                        <option value="" disabled selected>Kategorie</option>
+                        <option v-for="(name, key) in categoryOptions" :key="key" :value="name">{{ name }}</option>
+                    </select>
+                </div>
+
+                <div class="w-full max-w-[60%]">
+                    <input
+                        v-model="dateTimeLocal"
+                        type="datetime-local"
+                        class="w-full p-4 h-full rounded-lg outline-none"
+                        :style="{ backgroundColor: categoryColors.color_light }"
+                    />
+                </div>
+            </div>
+
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Task Name</label>
                 <input
                     v-model="localEditForm.name"
                     type="text"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    class="w-full p-4 rounded-lg outline-none"
+                    :style="{ 
+                        backgroundColor: categoryColors.color_light
+                    }"
                 />
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <textarea
                     v-model="localEditForm.description"
                     rows="3"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                ></textarea>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                    <input
-                        v-model="localEditForm.due_date"
-                        type="date"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Due Time</label>
-                    <input
-                        v-model="localEditForm.due_time"
-                        type="time"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                </div>
+                    class="w-full p-4 rounded-lg outline-none"
+                    :style="{ 
+                        backgroundColor: categoryColors.color_light
+                    }"
+                />
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Subtasks</label>
                 <div class="space-y-2">
                     <div v-for="subtask in sortedEditSubTasks" :key="subtask.id" class="flex items-center gap-2">
                         <input
                             type="checkbox"
                             :checked="subtask.status"
                             @change="toggleEditSubtaskStatus(subtask.originalIndex)"
-                            class="w-5 h-5 shrink-0 cursor-pointer accent-orange-500"
+                            class="w-5 h-5 shrink-0 cursor-pointer"
+                            :style="{ 
+                                backgroundColor: categoryColors.color_light,
+                                accentColor: categoryColors.color_dark 
+                            }"
+
                         />
                         <input
                             v-model="localEditSubTasks[subtask.originalIndex].name"
                             type="text"
                             placeholder="Subtask name..."
-                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            class="w-full p-4 rounded-lg outline-none"
+                            :style="{ 
+                                backgroundColor: categoryColors.color_light
+                            }"
                             :class="{ 'line-through text-gray-400': subtask.status }"
                         />
-                        <button @click.stop="removeSubtask(subtask.originalIndex)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200">
-                            ✕
+                        <button @click.stop="removeSubtask(subtask.originalIndex)" :style="{ backgroundColor: categoryColors.color_dark}" class="cursor-pointer p-4 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="stroke-text-primary" fill="none">
+                                <g clip-path="url(#clip0_2767_11732)">
+                                    <path d="M4 7H20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 11V17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 11V17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5 7L6 19C6 19.5304 6.21071 20.0391 6.58579 20.4142C6.96086 20.7893 7.46957 21 8 21H16C16.5304 21 17.0391 20.7893 17.4142 20.4142C17.7893 20.0391 18 19.5304 18 19L19 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 7V4C9 3.73478 9.10536 3.48043 9.29289 3.29289C9.48043 3.10536 9.73478 3 10 3H14C14.2652 3 14.5196 3.10536 14.7071 3.29289C14.8946 3.48043 15 3.73478 15 4V7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </g>
+                                <defs>
+                                    <clipPath id="clip0_2767_11732">
+                                    <rect width="24" height="24"/>
+                                    </clipPath>
+                                </defs>
+                            </svg>
                         </button>
                     </div>
-                    <button @click.stop="addSubtask" class="w-full px-3 py-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200">
+                    <button @click.stop="addSubtask" class="w-full p-4 rounded-lg outline-none" :style="{ backgroundColor: categoryColors.color_dark}">
                         + Add subtask
                     </button>
                 </div>
@@ -77,7 +103,35 @@
 
         <div class="flex flex-row justify-between items-center w-full mb-4 gap-4">
             <button @click.stop="$emit('cancel')" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
-                Cancel
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <g clip-path="url(#clip0_2565_9051)">
+                    <path
+                      d="M18 6L6 18"
+                      stroke="#2B2B2B"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M6 6L18 18"
+                      stroke="#2B2B2B"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_2565_9051">
+                      <rect width="24" height="24" fill="white" />
+                    </clipPath>
+                  </defs>
+                </svg>
             </button>
             <button 
                 @click.stop="confirmDelete" 
@@ -121,9 +175,9 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
-    categoryColor: {
-        type: String,
-        default: '#FFF7ED'
+    categoryColors: {
+        type: Object,
+        required: true
     },
     isBackOfCard: {
         type: Boolean,
@@ -133,18 +187,98 @@ const props = defineProps({
 
 const emit = defineEmits(['cancel', 'save', 'delete'])
 
-const { updateTask, deleteTask, tasks, getTask } = useTasks()
+const { updateTask, deleteTask, tasks, getTask, getTasks } = useTasks()
 const { createSubTask, createSubTasks, updateSubTask, deleteSubTask, getSubTasks } = useSubTasks()
 
-const isSaving = ref(false)
-const deleteConfirm = ref(false)
+// categories and user display names (for the select)
+const { categories } = useCategories()
+const { userCategories } = useUserCategories()
 
-// Local edit state
+const categoryOptions = computed(() => {
+    const options = {}
+    if (userCategories.value) {
+        Object.keys(userCategories.value).forEach((key) => {
+            if (key.endsWith('_name')) {
+                const colorKey = key.replace('_name', '')
+                options[colorKey] = userCategories.value[key]
+            }
+        })
+    }
+    return options
+})
+
+// local select value (display name). This mirrors taskcreator's `categoryUserName` behavior.
+const localCategoryUserName = ref('')
+
+// Local edit state (declared early so watchers can reference it)
 const localEditForm = ref({
     name: '',
     description: '',
     due_date: '',
     due_time: ''
+})
+
+// ensure localEditForm includes category fields
+if (!localEditForm.value.categoryName) localEditForm.value.categoryName = ''
+if (!localEditForm.value.category_id) localEditForm.value.category_id = ''
+
+// when select changes, update localEditForm.categoryName (color key) similar to taskcreator
+watch(() => localCategoryUserName.value, (newVal) => {
+    if (!newVal) {
+        localEditForm.value.categoryName = ''
+        return
+    }
+
+    // if the selected value matches a key in categoryOptions (i.e. user chose the color key display), use it
+    if (categoryOptions.value && categoryOptions.value[newVal]) {
+        localEditForm.value.categoryName = newVal
+        return
+    }
+
+    // otherwise try to find the color key by matching the display name
+    const colorKey = Object.entries(categoryOptions.value).find(
+        ([key, name]) => name && name.toLowerCase() === newVal.toLowerCase()
+    )?.[0]
+
+    if (!colorKey) {
+        localEditForm.value.categoryName = ''
+        return
+    }
+
+    localEditForm.value.categoryName = colorKey
+})
+
+// keep a category_id in sync when categoryName changes
+watch(() => localEditForm.value.categoryName, (newName) => {
+    if (!newName) {
+        localEditForm.value.category_id = ''
+        return
+    }
+    const cat = categories.value.find(c => c.name === newName)
+    localEditForm.value.category_id = cat?.id || ''
+})
+
+const isSaving = ref(false)
+const deleteConfirm = ref(false)
+
+// Combined datetime for the input (matches taskcreator behavior)
+const dateTimeLocal = computed({
+    get() {
+        if (!localEditForm.value.due_date) return ''
+        const date = localEditForm.value.due_date
+        const time = localEditForm.value.due_time || '00:00'
+        return `${date}T${time}`
+    },
+    set(value) {
+        if (!value) {
+            localEditForm.value.due_date = ''
+            localEditForm.value.due_time = ''
+            return
+        }
+        const [date, time] = value.split('T')
+        localEditForm.value.due_date = date
+        localEditForm.value.due_time = time
+    }
 })
 
 const localEditSubTasks = ref([])
@@ -158,8 +292,14 @@ watch(() => props.task, (newTask) => {
             name: newTask.name || '',
             description: newTask.description || '',
             due_date: newTask.due_date || '',
-            due_time: newTask.due_time || ''
+            due_time: newTask.due_time || '',
+            categoryName: newTask.categoryName || '',
+            category_id: newTask.category_id || newTask.categoryId || ''
         }
+
+        // initialize select display name from userCategories mapping if available
+        const displayName = userCategories.value?.[`${localEditForm.value.categoryName}_name`]
+        localCategoryUserName.value = displayName || localEditForm.value.categoryName || ''
     }
 }, { immediate: true })
 
@@ -188,7 +328,8 @@ function hasTaskChanged() {
     return localEditForm.value.name !== (props.task.name || '') ||
            localEditForm.value.description !== (props.task.description || '') ||
            localEditForm.value.due_date !== (props.task.due_date || '') ||
-           localEditForm.value.due_time !== (props.task.due_time || '')
+           localEditForm.value.due_time !== (props.task.due_time || '') ||
+           localEditForm.value.category_id !== (props.task.category_id || props.task.categoryId || '')
 }
 
 // Check if a subtask has changed compared to original
@@ -208,12 +349,14 @@ async function handleSave() {
         
         // Only update main task if something changed
         if (hasTaskChanged()) {
-            promises.push(updateTask(props.task.id, {
+            const updates = {
                 name: localEditForm.value.name,
                 description: localEditForm.value.description,
                 due_date: localEditForm.value.due_date,
                 due_time: localEditForm.value.due_time,
-            }))
+            }
+            if (localEditForm.value.category_id) updates.category_id = localEditForm.value.category_id
+            promises.push(updateTask(props.task.id, updates))
         }
         
         // Delete removed subtasks
@@ -244,6 +387,7 @@ async function handleSave() {
         // Refresh data if we made changes
         if (promises.length > 0 || newSubTasks.length > 0) {
             await Promise.all([
+                getTasks(),
                 getTask(props.task.id),
                 getSubTasks(props.task.id)
             ])
