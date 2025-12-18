@@ -156,7 +156,7 @@ export function useAudioRecorder() {
     return data || ''
   }
 
-  async function getAssistantDraft(userTranscript, existingDraft, userCategories, groups) {
+  async function getAssistantDraft(userTranscript, existingDraft, userCategories, groups, assistantMessages = []) {
     // Extract only the color_name fields from userCategories
     const colorNames = {}
     if (userCategories) {
@@ -182,6 +182,7 @@ export function useAudioRecorder() {
         existingDraft: JSON.stringify(existingDraft),
         categories: JSON.stringify(colorNames), 
         types: JSON.stringify(groupsSimple),
+        assistantMessages: assistantMessages || []
       },
     })
 
