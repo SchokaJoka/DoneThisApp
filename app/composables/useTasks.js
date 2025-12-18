@@ -104,13 +104,22 @@ export function useTasks() {
   async function updateTask(taskId, updates) {
     error.value = null
     loading.value = true
-    
-    await $fetch(`/api/tasks/${taskId}`, {
-      method: 'PATCH',
-      body: { updates }
-    })    
+    try {
+      // sanitize empty date/time strings to null to avoid Postgres errors
+      const sanitized = { ...updates }
+      if (sanitized.due_date === '') sanitized.due_date = null
+      if (sanitized.due_time === '') sanitized.due_time = null
 
-    loading.value = false
+      await $fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        body: { updates: sanitized }
+      })
+    } catch (err) {
+      error.value = err?.message || String(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
   }
   
   return { loading, error, task, tasks, getTasks, getTask, createTask, deleteTask, updateTask, getFocusTask, hasTaskInFocus, getHasFocus }
