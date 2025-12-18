@@ -103,34 +103,16 @@
 
         <div class="flex flex-row justify-between items-center w-full mb-4 gap-4">
             <button @click.stop="$emit('cancel')" class="flex w-full justify-center cursor-pointer p-4 bg-bg rounded-lg">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <g clip-path="url(#clip0_2565_9051)">
-                    <path
-                      d="M18 6L6 18"
-                      stroke="#2B2B2B"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M6 6L18 18"
-                      stroke="#2B2B2B"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_2565_9051">
-                      <rect width="24" height="24" fill="white" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
+                <g clip-path="url(#clip0_2600_10946)">
+                    <path d="M18 6L6 18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 6L18 18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </g>
+                <defs>
+                    <clipPath id="clip0_2600_10946">
+                    <rect width="24" height="24" fill="white"/>
                     </clipPath>
-                  </defs>
+                </defs>
                 </svg>
             </button>
             <button 
