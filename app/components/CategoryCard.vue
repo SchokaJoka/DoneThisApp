@@ -13,7 +13,7 @@
                 <div></div>
                 <h2 class="text-lg text-text-primary text-center font-semibold mb-2">{{ categoryName }}</h2>
                 <div class="w-full flex justify-center gap-2 mt-2">
-                    <button v-if="(props.category && props.category.id !== 0)" @click.stop="edit"  class="absolute top-2 right-2 z-10 flex justify-center items-center p-2">
+                    <button v-if="(props.category && props.category.id !== 0 && !isFlipped)" @click.stop="edit"  class="absolute top-2 right-2 z-10 flex justify-center items-center p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="stroke-text-primary">
                             <g clip-path="url(#clip0_2249_2354)">
                                 <path d="M12 15.0001L20.385 6.58511C20.7788 6.19126 21.0001 5.65709 21.0001 5.10011C21.0001 4.54312 20.7788 4.00895 20.385 3.61511C19.9912 3.22126 19.457 3 18.9 3C18.343 3 17.8088 3.22126 17.415 3.61511L9 12.0001V15.0001H12Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

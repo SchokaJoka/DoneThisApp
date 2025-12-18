@@ -1,6 +1,6 @@
 <template>
     <div 
-        class="w-full max-w-[370px] h-[600px] max-h-[75vh] overflow-x-hidden overflow-y-auto flex flex-col justify-between items-start py-4 px-4 rounded-2xl" 
+        class="w-full max-w-[370px] h-[500px] max-h-[75vh] overflow-x-hidden overflow-y-auto flex flex-col justify-between items-start py-4 px-4 rounded-2xl" 
         :class="isBackOfCard ? 'absolute backface-hidden' : ''"
         :style="{ 
             transform: isBackOfCard ? 'rotateY(180deg)' : 'none', 
