@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col items-center justify-center">
-    <div class="w-full h-[10vh] flex justify-center items-center bg-nav-bg">
+    <div class="w-full h-[10vh] sticky top-0 flex justify-center items-center bg-nav-bg z-10">
       <p> {{ doneTasks.length }} abgeschlossene Tasks</p>
     </div>
     <div class="max-w-[600px] mt-4 px-4 grid grid-cols-2 gap-1">
