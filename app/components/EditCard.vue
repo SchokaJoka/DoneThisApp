@@ -1,6 +1,6 @@
 <template>
     <div 
-        class="w-full max-w-[370px] h-[600px] max-h-[75vh] flex flex-col justify-between items-start py-4 px-4 rounded-2xl" 
+        class="w-full max-w-[370px] h-[600px] max-h-[75vh] overflow-x-hidden overflow-y-auto flex flex-col justify-between items-start py-4 px-4 rounded-2xl" 
         :class="isBackOfCard ? 'absolute backface-hidden' : ''"
         :style="{ 
             transform: isBackOfCard ? 'rotateY(180deg)' : 'none', 
@@ -13,7 +13,7 @@
                 <div class="w-full">
                     <select
                         v-model="localCategoryUserName"
-                        class="w-full p-4 rounded-lg"
+                        class="w-full p-4 rounded-lg text-sm"
                         :style="{ backgroundColor: categoryColors.color_light }"
                     >
                         <option value="" disabled selected>Kategorie</option>
@@ -25,7 +25,7 @@
                     <input
                         v-model="dateTimeLocal"
                         type="datetime-local"
-                        class="w-full p-4 rounded-lg outline-none"
+                        class="w-full p-4 rounded-lg outline-none text-sm"
                         :style="{ backgroundColor: categoryColors.color_light }"
                     />
                 </div>
