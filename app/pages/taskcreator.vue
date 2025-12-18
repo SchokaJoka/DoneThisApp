@@ -1,4 +1,5 @@
 <script setup>
+const loading = ref(false);
 const { categories } = useCategories();
 const { userCategories } = useUserCategories();
 const { groups } = useGroups();
@@ -239,6 +240,10 @@ async function handleUserAudio() {
 
 // Shared function to request a draft from the assistant based on current transcript and userTask
 async function fetchAssistantDraft() {
+  loading.value = true;
+  assistantMessage.value.push(
+    "Einen Moment bitte..."
+  );
   const draftTask = {
     name: userTask.value.name,
     description: userTask.value.description,
@@ -297,6 +302,8 @@ async function fetchAssistantDraft() {
   userTask.value.name = assistantDraft.value.name || "";
   userTask.value.groupName = assistantDraft.value.type || "";
   userTask.value.showDraft = true;
+
+  loading.value = false;
 }
 
 // Send manual typed message to the assistant (adds to transcript and requests draft)
@@ -396,15 +403,15 @@ async function addTask() {
 </script>
 
 <template>
-  <div class="h-[93vh] w-full fixed top-0 left-0 flex flex-col justify-center items-center">
-    <div class="w-full flex flex-col items-center">
+  <div class="h-[83vh] w-full fixed top-0 left-0 flex flex-col justify-start items-center">
+    <div class="w-full h-full flex flex-col items-center">
       <TransitionGroup 
         name="move-animation"
       >
       <div
         v-if="!userTask.showDraft && !showContent"
         key="lottie-intro"
-        class="w-full max-h-[30vh] flex items-center justify-center"
+        class="w-full h-full flex items-center justify-center"
       >
         <div class="w-full h-full max-h-[30vh]">
           <Lottie name="playing-cards" width="100%" height="100%" :autoplay="true" :loop="false" :speed="2" :pause-animation="false" :play-on-hover="false" direction="1" @onComplete="showContent = true" />
@@ -608,9 +615,9 @@ async function addTask() {
       <div
         v-if="showContent"
         key="ai-message"
-        class="w-full h-full overflow-hidden overflow-y-auto flex justify-center items-start px-4 pb-4"
+        class="w-full h-full overflow-hidden overflow-y-auto flex justify-center items-start"
       >
-        <div class="w-full max-w-[500px] flex flex-col items-center gap-4">
+        <div class="w-full max-w-[500px] h-full p-4 flex flex-col items-center justify-center gap-4">
           <!-- Error message -->
           <div
             v-if="errorMsg"
@@ -620,37 +627,36 @@ async function addTask() {
           </div>
             <div
               v-if="assistantMessage.length > 0"
-              class="w-full flex flex-col rounded-2xl px-4 py-4 items-center text-left gap-4"
+              class="w-full flex flex-col shadow-md rounded-2xl border border-icon/20 bg-white px-4 pb-4 pt-2 items-start text-left gap-1"
             >
-              <div class="w-15 h-15">
+              <div class="w-10 h-10 bg-transparent">
                 <Lottie
                   name="Eyes"
-                  :pause-animation="!isRecording && !isTyping"
+                  :pause-animation="!isRecording && !isTyping && !loading"
                   height="100%"
                   :speed="1"
                 />
               </div>
 
               <div class="w-full">
-                <p
-                  class="text-gray-800 text-lg"
-                  style="font-family: 'Roboto', sans-serif"
+                <h4
+                  class="text-text-primary text-sm font-primary"
                 >
                   {{ displayedText }}
                   <span
                     v-if="isTyping"
                     class="inline-block w-0.5 h-4 bg-gray-800 ml-0.5 animate-pulse"
                   ></span>
-                </p>
+              </h4>
               </div>
             </div>
         </div>
       </div>
 
-      <!-- Recording button -->
+      <!-- USER ACTION BUTTONS -->
       <div
         key="recording-section"
-        class="w-full max-w-[500px] flex justify-center items-center p-4 mb-8"
+        class="w-full max-w-[500px] max-h-[10vh] fixed bottom-16 flex justify-center items-center p-4"
       >
           <TransitionGroup
             v-if="showContent"
@@ -669,14 +675,14 @@ async function addTask() {
                 @keyup.enter="sendTypedMessage()"
                 :placeholder="'Beschreibe deine Aufgabe...'
                 "
-                class="w-full h-full pr-12 pl-4 rounded-lg outline-none text-text-primary placeholder-text-primary transition-colors bg-primary/50"
+                class="w-full h-full pr-12 pl-4 rounded-full shadow-md outline-none text-text-primary placeholder-text-primary transition-colors bg-primary/50"
               />
               <button
                 @click="sendTypedMessage()"
                 aria-label="Senden"
-                class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-btn-primary hover:bg-btn-primary-hover text-text-secondary transition-all z-10"
+                class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 shadow-md flex items-center justify-center rounded-full bg-btn-primary hover:bg-btn-primary-hover text-text-secondary transition-all z-10"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" class="stroke-current">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 h-4 stroke-current">
                   <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -686,7 +692,7 @@ async function addTask() {
               key="mic-btn"
               @click="isRecording ? handleStopRecording() : startRecording()"
               :class="[
-                'flex items-center justify-center w-16 h-16 rounded-full shrink-0 transition-all',
+                'flex items-center shadow-md justify-center w-16 h-16 rounded-full shrink-0 transition-all',
                 isRecording
                   ? 'bg-accent hover:bg-accent-hover animate-pulse text-white'
                   : 'bg-btn-primary hover:bg-btn-primary-hover text-text-secondary',
