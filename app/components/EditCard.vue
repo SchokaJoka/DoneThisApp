@@ -13,7 +13,7 @@
                 <div class="w-full">
                     <select
                         v-model="localCategoryUserName"
-                        class="w-full p-4 rounded-lg text-sm"
+                        class="w-full p-4 h-12 rounded-lg text-sm"
                         :style="{ backgroundColor: categoryColors.color_light }"
                     >
                         <option value="" disabled selected>Kategorie</option>
@@ -25,7 +25,7 @@
                     <input
                         v-model="dateTimeLocal"
                         type="datetime-local"
-                        class="w-full p-4 rounded-lg outline-none text-sm"
+                        class="w-full p-4 h-12 rounded-lg outline-none text-sm"
                         :style="{ backgroundColor: categoryColors.color_light }"
                     />
                 </div>
