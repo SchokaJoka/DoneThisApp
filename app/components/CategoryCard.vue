@@ -34,7 +34,7 @@
             <div class="shadow-md absolute inset-0 backface-hidden flex flex-col justify-between items-start p-2 rounded-2xl ring-offset-bg-surface" :style="{ transform: 'rotateY(180deg)', backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none', backgroundSize: 'cover' }" :class="props.isActive ? 'ring-4 ring-btn-primary ring-offset-4' : 'ring-0 ring-transparent ring-offset-0'">
                 <div class="w-full">
                     <div class="mb-3 w-full">
-                        <input v-model="input" type="text" class="w-full p-2 bg-white/80 border-border rounded-lg" />
+                        <input v-model="input" type="text" class="w-full p-2 bg-white border-border rounded-lg" />
                     </div>
                 </div>
 
