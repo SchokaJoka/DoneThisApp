@@ -9,6 +9,14 @@
         :taskId="task.id"
       />
     </div>
+      <div class="w-full fixed bottom-16 flex items-center justify-center p-4">
+        <button
+          @click="logout"
+          class="h-16 rounded-full px-12 shadow-md bg-nav-bg cursor-pointer text-text-primary border-icon-active/20 border"
+        >
+          Logout
+        </button>
+      </div>
   </div>
 </template>
 

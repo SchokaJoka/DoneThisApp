@@ -1,5 +1,5 @@
 <template>
-    <div class="perspective-1000 w-full flex justify-center items-center">
+    <div :class="{ completing: isCompleting }" class="perspective-1000 w-full flex justify-center items-center">
         <div 
             class="transition-transform ease-in-out duration-300 transform-style-3d w-full flex justify-center items-center"
             :style="{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }"
@@ -108,6 +108,11 @@
                         </div>
                     </button>
                 </div>
+            </div>
+
+            <!-- Completion overlay: simple text animation -->
+            <div v-if="isCompleting" class="complete-overlay">
+                <div class="complete-text" aria-hidden>You did it!</div>
             </div>
 
             <!-- Focus warning overlay -->
@@ -228,6 +233,7 @@ const rotation = ref(0)
 const isFlipped = ref(false)
 const showFocusWarning = ref(false)
 const subtasksContainer = ref(null)
+const isCompleting = ref(false)
 let touchStartY = 0
 let scrollStartTop = 0
 
@@ -265,9 +271,15 @@ async function handleToggleSubtask(subtask) {
 
 // Mark task as complete (status = 2)
 async function completeTask() {
+    if (isCompleting.value) return
+    isCompleting.value = true
+    // wait for the text animation to play
+    await new Promise((res) => setTimeout(res, 800))
     await updateTask(task.value.id, { status: 2 })
     // Remove from local tasks array
     tasks.value = tasks.value.filter(t => t.id !== task.value.id)
+    await getTasks()
+    isCompleting.value = false
     navigateTo('/archive')
 }
 
@@ -401,5 +413,41 @@ const categoryColors = computed(() => {
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+}
+
+/* Completion animation styles */
+.perspective-1000 {
+    position: relative;
+}
+.perspective-1000.completing {
+    pointer-events: none;
+}
+.complete-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+
+/* Text completion animation */
+.complete-text {
+    font-size: 30px;
+    font-weight: 700;
+    color: #fff;
+    padding: 18px 28px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(0,0,0,1), rgba(0,0,0,1));
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    transform: translateY(8px) scale(0.95) rotate(-4deg);
+    animation: pop-text 800ms cubic-bezier(.16,.84,.24,1) forwards;
+}
+
+@keyframes pop-text {
+    0% { opacity: 0; transform: translateY(20px) scale(0.9) }
+    40% { opacity: 1; transform: translateY(-6px) scale(1.06) }
+    100% { opacity: 1; transform: translateY(0px) scale(1) }
 }
 </style>
