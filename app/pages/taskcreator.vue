@@ -421,10 +421,10 @@ async function addTask() {
       <div
         v-if="userTask.showDraft"
         key="user-task"
-        class="w-full max-h-[60vh] z-1 flex justify-center items-start px-4 pt-4"
+        class="w-full max-h-[65h] z-1 flex justify-center items-start px-4 pt-4"
       >
         <div
-          class="w-[360px] max-h-[60vh] flex flex-col justify-start items-start bg-bg-surface p-4 rounded-[21px] gap-4 overflow-hidden"
+          class="w-[360px] max-h-[65vh] flex flex-col justify-start items-start bg-bg-surface p-4 rounded-[21px] gap-2 overflow-hidden"
           :style="{ backgroundColor: categoryColors.color }"
         >
           <div
@@ -615,9 +615,9 @@ async function addTask() {
       <div
         v-if="showContent"
         key="ai-message"
-        class="w-full h-full overflow-hidden overflow-y-auto flex justify-center items-start"
+        class="w-full fixed bottom-32 mb-4 overflow-hidden overflow-y-auto flex justify-center items-center"
       >
-        <div class="w-full max-w-[500px] h-full p-4 flex flex-col items-center justify-center gap-4">
+        <div class="w-full max-w-[500px] h-full max-h-[50vh] p-4 flex flex-col items-center justify-start gap-4">
           <!-- Error message -->
           <div
             v-if="errorMsg"
