@@ -627,7 +627,7 @@ async function addTask() {
           </div>
             <div
               v-if="assistantMessage.length > 0"
-              class="w-full flex flex-col shadow-md rounded-2xl border border-icon/20 bg-white px-4 pb-4 pt-2 items-start text-left gap-1"
+              class="w-full flex flex-col rounded-2xl border border-icon/20 bg-white px-4 pb-4 pt-2 items-start text-left gap-1"
             >
               <div class="w-10 h-10 bg-transparent">
                 <Lottie

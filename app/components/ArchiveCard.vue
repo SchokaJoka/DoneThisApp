@@ -1,7 +1,7 @@
 <template>
     <div
         class="relative rounded-2xl overflow-hidden bg-cover bg-center bg-no-repeat py-4 px-4"
-        :style="{ backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none' }"
+        :style="{ backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'url(/img/default.webp)' }"
     >
         <div class="relative flex flex-col gap-1">
             <h2 class="overflow-hidden text-2xl font-primary">{{ task.name }}</h2>
@@ -78,7 +78,6 @@ onMounted(async () => {
 // Computed property to get the background image URL
 const backgroundImageUrl = computed(() => {
     const randomNum = Math.floor(Math.random() * 20) + 1
-    return '/img/default.webp'
     try {
         return `/img/bg-card/${group.value.id}/${category.value.name}-${randomNum}.png`
     } catch (e) {
