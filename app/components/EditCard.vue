@@ -10,10 +10,10 @@
         <div class="w-full h-full flex flex-col gap-4 rounded-lg overflow-y-auto mb-2"> 
             
             <div class="flex flex-row gap-2 w-full">
-                <div class="w-full">
+                <div class="w-full h-fit">
                     <select
                         v-model="localCategoryUserName"
-                        class="w-full p-4 h-12 rounded-lg text-sm"
+                        class="w-full p-3 h-full rounded-lg text-sm"
                         :style="{ backgroundColor: categoryColors.color_light }"
                     >
                         <option value="" disabled selected>Kategorie</option>
@@ -25,7 +25,7 @@
                     <input
                         v-model="dateTimeLocal"
                         type="datetime-local"
-                        class="w-full p-4 h-12 rounded-lg outline-none text-sm"
+                        class="w-full p-3 h-fit rounded-lg outline-none text-sm"
                         :style="{ backgroundColor: categoryColors.color_light }"
                     />
                 </div>
