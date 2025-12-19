@@ -255,6 +255,8 @@ function cancelEdit() {
 
 function onEditSaved() {
     isFlipped.value = false
+    getTask(props.taskId)
+    getSubTasks(props.taskId)
 }
 
 function onEditDeleted() {
