@@ -1,54 +1,73 @@
 # DoneThisApp
 
-DoneThisApp is an intelligent task management web application that combines AI-driven features with a clear, motivating user interface. Built with Nuxt.js and Supabase, it guides users from idea inception to task completion with a focus on clarity and engagement. The project was developed as part of the "Studio Web 1" module at Lucerne University of Applied Sciences and Arts.
+**DoneThisApp** is a modern, AI-assisted to-do/task management web application that combats procrastination and boosts productivity. Built with Nuxt.js (Vue 3) and powered by Supabase, it combines AI-driven features with a clear, motivating user interface and a focus on getting your tasks *done*. The app can be previewed at [done-this-app.vercel.app](https://done-this-app.vercel.app).
 
-## Key Features
+Developed as part of the "Studio Web 1" module at Lucerne University of Applied Sciences and Arts.
 
-*   **AI-Assisted Task Creation**: Create tasks by speaking or typing. The app uses an AI assistant to transcribe voice input and draft task details, including name, description, subtasks, category, and due dates.
-*   **Interactive Task Board**: View and manage your tasks on a dynamic board of cards. Tasks can be filtered by customizable categories, and each card features a unique, procedurally generated background.
-*   **Focus Mode**: Dedicate your attention to a single task in a distraction-free view that highlights the current objective and subtasks.
-*   **Comprehensive Task Management**:
-    *   **Edit**: Flip task cards to edit details, add/remove subtasks, and change categories or deadlines.
-    *   **Complete**: Mark tasks as done with a satisfying animation, moving them to the archive.
-    *   **Archive**: Review all completed tasks. You can reset a task to move it back to your active list.
-*   **Authentication**: Secure user authentication is handled by Supabase, supporting both email-based magic links and Google OAuth.
+---
 
-## Technology Stack
+## 🚩 What the Project Does
 
-*   **Frontend**:
-    *   **Nuxt.js**: A powerful Vue.js framework for building the user interface.
-    *   **Tailwind CSS**: For modern, responsive, and utility-first styling.
-    *   **Lottie**: Used for engaging animations throughout the app, such as the loading sequence and AI assistant interactions.
+DoneThisApp helps users manage tasks from idea inception to completion with features like AI-assisted task entry (by typing or speaking), an interactive task board, distraction-free Focus Mode, and end-to-end task management—from creation and editing to archiving completed jobs. The experience is designed for engagement and clarity.
 
-*   **Backend**:
-    *   **Nuxt Server Engine**: Powers the server-side API endpoints.
-    *   **Supabase**: The all-in-one backend solution for:
-        *   **Database**: PostgreSQL for storing all application data.
-        *   **Auth**: Manages user sign-up, login, and sessions.
-        *   **Storage**: Stores audio recordings for AI transcription.
+---
 
-*   **AI & Machine Learning**:
-    *   **Replicate API**: Used to run models for:
-        *   **Transcription**: Converts user's voice recordings into text.
-        *   **Task Drafting**: An AI assistant processes the transcript and conversation context to generate a structured task draft.
+## ✨ Key Features & Benefits
 
-## Project Structure
+- **AI-Assisted Task Creation**: Input tasks via voice or text; an AI assistant transcribes and drafts full task details (name, description, subtasks, category, and due dates).
+- **Interactive Task Board**: Manage tasks on a dynamic board where each card has a unique, procedurally generated background. Quickly filter by customizable categories.
+- **Focus Mode**: Dedicate your attention to a single objective in a distraction-free view showing only the current goal and its subtasks.
+- **Comprehensive Task Management**:
+  - *Edit*: Flip a task card to update details, add/remove subtasks, or change metadata.
+  - *Complete*: Mark as done with a satisfying animation; move to the archive.
+  - *Archive*: Browse completed tasks and reset any to reactivate.
+- **Authentication**: Secure sign-in handled by Supabase supporting both email magic link and Google OAuth.
+- **Engaging Animations**: Integrated Lottie animations enliven the interface for loading and AI interactions.
+- **Accessible Setup**: Simple local development and modern deployment, with a unified backend (Supabase) for auth, data, and storage.
+- **All-in-one Solution**: Both server-side and API endpoints are integrated using Nuxt and Supabase.
 
-The repository is organized into the following key directories:
+---
 
-*   `/app`: Contains the Nuxt.js frontend application.
-    *   `/app/components`: Reusable Vue components like `TaskCard`, `CategoryCard`, and `EditCard`.
-    *   `/app/composables`: The core application logic, including state management and API interactions (`useTasks`, `useAudioRecorder`, etc.).
-    *   `/app/pages`: The main pages/views of the application, such as `/mytasks`, `/taskcreator`, and `/focus`.
-    *   `/app/middleware`: Includes `auth.ts` for route protection.
-*   `/server/api`: Backend API endpoints that interact with Supabase and the Replicate AI service.
-*   `/public`: Static assets, including fonts and background images for task cards.
-*   `/supabase`: Configuration for local Supabase development.
+## 🛠️ Technology Stack
 
-## Getting Started
+**Frontend:**
+- **Nuxt.js (Vue 3):** Main app framework.
+- **Tailwind CSS:** Utility-first responsive styling.
+- **Lottie / Nuxt-Lottie:** For engaging animations and delightful UI feedback.
 
-### Prerequisites
-*   Node.js (v18 or newer)
-*   npm, pnpm, yarn, or bun
-*   A Supabase account to get API keys.
-*   A Replicate account to get an API token.
+**Backend:**
+- **Nuxt Server Engine:** Handles custom backend endpoints.
+- **Supabase:** One-stop backend for:
+  - **Database:** PostgreSQL storage for all app data.
+  - **Auth:** Secure, multi-provider authentication.
+  - **Storage:** Save audio recordings for AI tasks.
+
+**AI & Machine Learning:**
+- **Replicate API:** Runs models for:
+  - **Transcription:** Converts voice recordings to text.
+  - **Task Drafting:** Processes transcripts and conversation history for smart, structured task suggestions.
+
+---
+
+## 🗂️ Project Structure
+
+- `/app/` – Nuxt application
+  - `/components/` – Reusable Vue components (`TaskCard`, `CategoryCard`, `EditCard`, etc.)
+  - `/composables/` – Core logic and state management (`useTasks`, `useAudioRecorder`, etc.)
+  - `/pages/` – Main app pages/views (`/mytasks`, `/taskcreator`, `/focus`, etc.)
+  - `/middleware/` – Route guards (e.g. `auth.ts`)
+  - `/assets/` – Styles & static assets
+  - `/types/` – TypeScript types
+- `/server/api/` – Backend endpoints for Supabase & Replicate AI
+- `/public/` – Static assets, fonts, and card backgrounds
+- `/supabase/` – Supabase configuration for local development
+
+---
+
+## 🌐 Live Demo
+
+Visit: [https://done-this-app.vercel.app](https://done-this-app.vercel.app)
+
+---
+
+**Built with ❤️ using Nuxt, Vue, Supabase, and AI.**
