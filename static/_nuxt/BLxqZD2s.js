@@ -1,0 +1,1 @@
+import{Q as u,H as o,A as s}from"./Ds6Mnvmd.js";const n=u(e=>{const a=o(),t=["/archive","/mytasks","/focus","/taskcreator","/dashboard"];if(!a.value&&t.some(r=>e.path.startsWith(r)))return s("/login");if(a.value&&e.path==="/login")return s("/mytasks");if(a.value&&e.path==="/")return s("/mytasks")});export{n as default};
